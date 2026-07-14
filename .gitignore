@@ -1,0 +1,10 @@
+node_modules/
+.env
+backend/uploads/
+backup/
+frontend/dist/
+
+# Dokumen resmi asli & data pribadi pegawai — bukan bagian dari source code,
+# jangan pernah masuk riwayat git.
+data/
+_petikan_files.txt
