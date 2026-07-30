@@ -15,4 +15,23 @@ pool.on('error', (err) => {
   console.error('Unexpected database pool error:', err);
 });
 
+// Run fn(client) inside a BEGIN/COMMIT transaction on a dedicated connection,
+// rolling back on any error. Use for multi-statement writes that must be
+// atomic (fn must use the passed client, not the shared pool, for its queries).
+async function withTransaction(fn) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = pool;
+module.exports.withTransaction = withTransaction;

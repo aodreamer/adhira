@@ -26,6 +26,13 @@
           <div><div class="text-[11px] text-gray-400 mb-0.5">Instansi</div><div class="text-gray-700">{{ row.instansi || '-' }}</div></div>
           <div><div class="text-[11px] text-gray-400 mb-0.5">Pangkat/Golongan</div><div class="text-gray-700">{{ row.pangkat || '-' }}</div></div>
         </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-4 pt-4 border-t border-dashed border-gray-200">
+          <div><div class="text-[11px] text-gray-400 mb-0.5">TMT CPNS/PNS</div><div class="text-gray-700">{{ row.tgl_tmt_cpns_pns || '-' }}</div></div>
+          <div><div class="text-[11px] text-gray-400 mb-0.5">Masa Kerja Kumulatif</div><div class="text-gray-700">{{ row.masa_kerja_kumulatif_tahun ?? '-' }} th {{ row.masa_kerja_kumulatif_bulan ?? '-' }} bln</div></div>
+          <div><div class="text-[11px] text-gray-400 mb-0.5">Masa Kerja Pengurangan</div><div class="text-gray-700">{{ row.masa_kerja_pengurangan_tahun ?? '-' }} th {{ row.masa_kerja_pengurangan_bulan ?? '-' }} bln</div></div>
+          <div><div class="text-[11px] text-gray-400 mb-0.5">Masa Kerja di Persandian</div><div class="text-gray-700 font-medium">{{ masaKerjaPersandian.tahun }} th {{ masaKerjaPersandian.bulan }} bln</div></div>
+        </div>
         <div class="mb-4">
           <p class="text-[11px] font-medium text-gray-500 mb-1.5">Baris Sertifikat</p>
           <div v-if="certificateLine" class="inline-block bg-yellow-200 px-3 py-2 rounded-lg border border-yellow-300 shadow-sm">
@@ -49,11 +56,28 @@
           <StatusBadge :status="row.verifikasi_berkas_status" />
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
-          <div v-for="fc in fileColumns" :key="fc" class="border rounded-xl p-3" :class="row[fc] ? 'border-emerald-200 bg-emerald-50/40' : 'border-gray-200 bg-gray-50/50'">
-            <div class="text-[11px] font-medium text-gray-700 mb-1.5">{{ labelMap[fc] }}</div>
-            <button v-if="row[fc]" type="button" @click="openPreview('/verifikator/' + route.params.id + '/download/' + fc, row[fc])" class="text-[11px] text-emerald-600 hover:underline">Lihat berkas</button>
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-[11px] font-medium text-gray-500">Berkas Wajib</p>
+          <span class="text-[11px] font-medium" :class="requiredCompleteCount === visibleRequiredDocs.length ? 'text-emerald-600' : 'text-amber-600'">
+            {{ requiredCompleteCount }}/{{ visibleRequiredDocs.length }} terpenuhi
+          </span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+          <div v-for="doc in visibleRequiredDocs" :key="doc.col" class="border rounded-xl p-3" :class="row[doc.col] ? 'border-emerald-200 bg-emerald-50/40' : 'border-amber-200 bg-amber-50/30'">
+            <div class="text-[11px] font-medium text-gray-700 mb-1.5">{{ doc.label }} <span class="text-red-500">*</span></div>
+            <button v-if="row[doc.col]" type="button" @click="openPreview('/verifikator/' + route.params.id + '/download/' + doc.col, row[doc.col])" class="text-[11px] text-emerald-600 hover:underline">Lihat berkas</button>
+            <span v-else class="text-[11px] text-amber-600">Belum ada berkas</span>
+            <div v-if="doc.titleCol && row[doc.titleCol]" class="text-[10px] text-gray-500 mt-1 italic">{{ row[doc.titleCol] }}</div>
+          </div>
+        </div>
+
+        <p class="text-[11px] font-medium text-gray-500 mb-2">Berkas Pendukung (Opsional)</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+          <div v-for="doc in OPTIONAL_DOCS" :key="doc.col" class="border rounded-xl p-3" :class="row[doc.col] ? 'border-emerald-200 bg-emerald-50/40' : 'border-gray-200 bg-gray-50/50'">
+            <div class="text-[11px] font-medium text-gray-700 mb-1.5">{{ doc.label }}</div>
+            <button v-if="row[doc.col]" type="button" @click="openPreview('/verifikator/' + route.params.id + '/download/' + doc.col, row[doc.col])" class="text-[11px] text-emerald-600 hover:underline">Lihat berkas</button>
             <span v-else class="text-[11px] text-gray-400">Belum ada berkas</span>
+            <div v-if="doc.titleCol && row[doc.titleCol]" class="text-[10px] text-gray-500 mt-1 italic">{{ row[doc.titleCol] }}</div>
           </div>
         </div>
 
@@ -79,6 +103,9 @@ import StatusBadge from '../../components/shared/StatusBadge.vue';
 import FilePreviewModal from '../../components/shared/FilePreviewModal.vue';
 import VerifikasiPanel from '../../components/verifikator/VerifikasiPanel.vue';
 import { useFilePreview } from '../../composables/useFilePreview';
+import { REQUIRED_DOCS, OPTIONAL_DOCS } from '../../constants/documents';
+import { isAsnTrackInstansi } from '../../constants/rank-data';
+import { computeMasaKerjaPersandian } from '../../constants/masa-kerja';
 
 const route = useRoute();
 const { previewState, openPreview, closePreview } = useFilePreview();
@@ -89,10 +116,10 @@ const savingBerkas = ref(false);
 const errorData = ref('');
 const errorBerkas = ref('');
 
-const fileColumns = ['file_kepka', 'file_ktp', 'file_drh', 'file_pengangkatan', 'file_keputusan_jabatan', 'file_piagam_x', 'file_piagam_xx', 'file_piagam_xxx', 'file_piagam_adibhakti', 'file_piagam_tokoh'];
-const labelMap = { file_kepka: 'KEPKA', file_ktp: 'KTP', file_drh: 'DRH', file_pengangkatan: 'Pengangkatan', file_keputusan_jabatan: 'Kep. Jabatan', file_piagam_x: 'Piagam X', file_piagam_xx: 'Piagam XX', file_piagam_xxx: 'Piagam XXX', file_piagam_adibhakti: 'Adibhakti', file_piagam_tokoh: 'Tokoh' };
-
 const certificateLine = computed(() => (row.value ? buildCertificateLine(row.value) : ''));
+const visibleRequiredDocs = computed(() => REQUIRED_DOCS.filter((d) => !d.asnOnly || isAsnTrackInstansi(row.value?.instansi)));
+const requiredCompleteCount = computed(() => (row.value ? visibleRequiredDocs.value.filter((d) => row.value[d.col]).length : 0));
+const masaKerjaPersandian = computed(() => computeMasaKerjaPersandian(row.value || {}));
 
 async function fetchData() {
   loading.value = true;

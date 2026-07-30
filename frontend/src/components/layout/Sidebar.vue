@@ -7,16 +7,19 @@
     <button
       type="button"
       @click="uiStore.toggleSidebarCollapsed()"
-      class="hidden lg:flex absolute top-16 -right-3 z-50 w-6 h-6 rounded-full bg-gray-800 border border-gray-700 shadow items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition"
+      class="hidden lg:flex absolute top-20 -right-3 z-50 w-6 h-6 rounded-full bg-gray-800 border border-gray-700 shadow items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition"
       :title="uiStore.sidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'"
     >
       <svg class="w-3.5 h-3.5 transition-transform" :class="uiStore.sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
     </button>
-    <div class="flex items-center gap-3 h-16 px-5 border-b border-gray-800" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''">
+    <div class="flex items-center gap-3 h-20 px-5 border-b border-gray-800" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''">
       <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
       </div>
-      <span class="text-white font-bold text-base" :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Adhira</span>
+      <div class="leading-tight min-w-0" :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">
+        <div class="text-white font-bold text-base tracking-wide">ADHIRA</div>
+        <div class="text-[9px] text-gray-400">Aplikasi Digital Penghargaan Dharma Persandian</div>
+      </div>
       <button @click="uiStore.closeMobileMenu()" class="ml-auto lg:hidden text-gray-400 hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
@@ -49,6 +52,14 @@
       </router-link>
       <router-link to="/admin/laporan" :title="uiStore.sidebarCollapsed ? 'Laporan Kegiatan' : ''" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'pl-[38px]'" active-class="bg-gray-800 text-white font-medium">
         <span class="flex-shrink-0">📊</span><span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Laporan Kegiatan</span>
+      </router-link>
+      <router-link to="/admin/verifikator-registrations" :title="uiStore.sidebarCollapsed ? 'Persetujuan Verifikator' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Persetujuan Verifikator</span>
+      </router-link>
+      <router-link to="/admin/verifikator-codes" :title="uiStore.sidebarCollapsed ? 'Kode Pendaftaran Verifikator' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 11-12 0 6 6 0 0112 0zM3 21l2.5-2.5M6 18l2.121-2.121"/></svg>
+        <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Kode Pendaftaran</span>
       </router-link>
     </nav>
     <div class="p-3 border-t border-gray-800 space-y-1">

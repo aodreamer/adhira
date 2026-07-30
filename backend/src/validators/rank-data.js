@@ -43,4 +43,14 @@ const PANGKAT_OPTIONS = [...new Set([
   ...PANGKAT_TNI_AD, ...PANGKAT_TNI_AU, ...PANGKAT_TNI_AL, ...PANGKAT_POLRI, ...PANGKAT_PNS,
 ])];
 
-module.exports = { INSTANSI_OPTIONS, PANGKAT_OPTIONS };
+// Instansi dengan jenjang karier Polri/TNI (bukan PNS) tidak melalui proses
+// CPNS/PNS, jadi berkas SK CPNS/PNS tidak relevan untuk mereka.
+const ASN_TRACK_EXCLUDED = ['Polri', 'TNI AD', 'TNI AU', 'TNI AL', 'BAIS TNI'];
+function isAsnTrackInstansi(instansi) {
+  return !!instansi && !ASN_TRACK_EXCLUDED.includes(instansi);
+}
+
+module.exports = {
+  INSTANSI_OPTIONS, PANGKAT_TNI_AD, PANGKAT_TNI_AU, PANGKAT_TNI_AL, PANGKAT_POLRI, PANGKAT_PNS, PANGKAT_OPTIONS,
+  ASN_TRACK_EXCLUDED, isAsnTrackInstansi,
+};

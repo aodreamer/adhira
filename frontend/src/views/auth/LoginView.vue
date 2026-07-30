@@ -5,8 +5,9 @@
         <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
         </div>
-        <h1 class="text-3xl font-bold mb-3">Adhira Penghargaan</h1>
-        <p class="text-blue-200 text-lg">Sistem Pengarsipan Dokumen Penghargaan Elektronik</p>
+        <h1 class="text-4xl font-bold mb-1 tracking-wide">ADHIRA</h1>
+        <p class="text-blue-200 text-base mb-3">Aplikasi Digital Penghargaan Dharma Persandian</p>
+        <p class="text-blue-200/70 text-sm">Sistem Pengarsipan Dokumen Penghargaan Elektronik</p>
       </div>
     </div>
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6">
@@ -16,7 +17,7 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
           </div>
           <h2 class="text-xl font-bold text-gray-800">Login</h2>
-          <p class="text-sm text-gray-500 mt-1">Masuk ke sistem Adhira</p>
+          <p class="text-sm text-gray-500 mt-1">Masuk ke sistem ADHIRA</p>
         </div>
         <form @submit.prevent="handleLogin" class="space-y-4">
           <div>
@@ -40,7 +41,9 @@
           <button type="submit" :disabled="loading" class="w-full bg-blue-600 text-white py-2.5 rounded-xl font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed">
             {{ loading ? 'Memproses...' : 'Masuk' }}
           </button>
-        <p class="text-center text-sm text-gray-500 mt-4">Belum punya akun? <router-link to="/register" class="text-blue-600 hover:underline font-medium">Daftar disini</router-link></p>
+          <p class="text-center text-xs text-gray-500">
+            <router-link to="/register-verifikator" class="text-blue-600 hover:underline font-medium">Daftar sebagai Perwakilan Instansi (Dewan Penghargaan)</router-link>
+          </p>
       </form>
       </div>
     </div>

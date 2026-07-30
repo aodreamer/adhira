@@ -33,7 +33,7 @@ import VerifikatorSidebar from './VerifikatorSidebar.vue';
 const route = useRoute();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
-const pageTitle = computed(() => ({ VerifikatorHome: 'Beranda', VerifikatorQueue: 'Antrian Verifikasi', VerifikatorDetail: 'Detail Verifikasi', VerifikatorAccount: 'Profil Saya' }[route.name] || 'Adhira'));
+const pageTitle = computed(() => ({ VerifikatorHome: 'Beranda', VerifikatorQueue: 'Antrian Verifikasi', VerifikatorDetail: 'Detail Verifikasi', VerifikatorImport: 'Usulan Massal', VerifikatorRegistrasi: 'Registrasi', VerifikatorAccount: 'Profil Saya' }[route.name] || 'ADHIRA'));
 const today = computed(() => {
   const m = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agust','Sep','Okt','Nov','Des'];
   const d = new Date();

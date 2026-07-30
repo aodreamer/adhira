@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { createFieldMappedUploader, safeUploadPath } = require('../middleware/upload');
 const IndividuModel = require('../models/individu.model');
+const VerifikatorModel = require('../models/verifikator.model');
 
 const uploadDirs = {
   file_kepka: 'kepka',
@@ -11,8 +12,9 @@ const uploadDirs = {
   file_piagam_x: 'piagamx',
   file_piagam_xx: 'piagamxx',
   file_piagam_xxx: 'piagamxxx',
-  file_piagam_adibhakti: 'adibhakti',
-  file_piagam_tokoh: 'tokoh',
+  file_surat_usulan: 'surat_usulan',
+  file_sk_cpns_pns: 'sk_cpns_pns',
+  file_piagam_penghargaan: 'piagam_penghargaan',
 };
 
 const multiUpload = createFieldMappedUploader(uploadDirs);
@@ -152,4 +154,42 @@ async function filters(req, res) {
   }
 }
 
-module.exports = { list, getById, create, update, remove, download, filters };
+// PUT /individu/:id/verifikasi-data & /verifikasi-berkas -- Admin bisa
+// memverifikasi paralel dengan Verifikator, tanpa batasan cakupan instansi.
+// Admin selalu bisa override (tidak pernah dikunci), berbeda dari
+// verifikator.controller.js yang menolak override keputusan Admin.
+async function verifikasiData(req, res) {
+  try {
+    const { status, catatan } = req.body;
+    if (!['Disetujui', 'Ditolak'].includes(status)) return res.status(400).json({ error: 'Status tidak valid' });
+    if (status === 'Ditolak' && !catatan) return res.status(400).json({ error: 'Catatan wajib diisi saat menolak' });
+
+    const existing = await IndividuModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Data tidak ditemukan' });
+
+    const updated = await VerifikatorModel.setVerifikasiData(req.params.id, { status, oleh: req.user.id_user, catatan });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal memverifikasi data pribadi' });
+  }
+}
+
+async function verifikasiBerkas(req, res) {
+  try {
+    const { status, catatan } = req.body;
+    if (!['Disetujui', 'Ditolak'].includes(status)) return res.status(400).json({ error: 'Status tidak valid' });
+    if (status === 'Ditolak' && !catatan) return res.status(400).json({ error: 'Catatan wajib diisi saat menolak' });
+
+    const existing = await IndividuModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Data tidak ditemukan' });
+
+    const updated = await VerifikatorModel.setVerifikasiBerkas(req.params.id, { status, oleh: req.user.id_user, catatan });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal memverifikasi berkas' });
+  }
+}
+
+module.exports = { list, getById, create, update, remove, download, filters, verifikasiData, verifikasiBerkas };

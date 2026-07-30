@@ -38,3 +38,11 @@ export const PANGKAT_PNS = [
   'Penata Muda (III/a)', 'Penata Muda Tingkat I (III/b)', 'Penata (III/c)', 'Penata Tingkat I (III/d)',
   'Pembina (IV/a)', 'Pembina Tingkat I (IV/b)', 'Pembina Utama Muda (IV/c)', 'Pembina Utama Madya (IV/d)', 'Pembina Utama (IV/e)',
 ];
+
+// Instansi dengan jenjang karier Polri/TNI (bukan PNS) tidak melalui proses
+// CPNS/PNS, jadi berkas SK CPNS/PNS tidak relevan untuk mereka.
+export const ASN_TRACK_EXCLUDED = ['Polri', 'TNI AD', 'TNI AU', 'TNI AL', 'BAIS TNI'];
+export function isAsnTrackInstansi(instansi) {
+  return !!instansi && !ASN_TRACK_EXCLUDED.includes(instansi);
+}
+

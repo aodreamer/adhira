@@ -33,7 +33,7 @@ import UserSidebar from './UserSidebar.vue';
 const route = useRoute();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
-const pageTitle = computed(() => ({ UserHome: 'Beranda', UserUsulan: 'Upload Berkas', UserAccount: 'Profil Saya' }[route.name] || 'Adhira'));
+const pageTitle = computed(() => ({ UserHome: 'Beranda', UserUsulan: 'Upload Berkas', UserAccount: 'Profil Saya' }[route.name] || 'ADHIRA'));
 const today = computed(() => {
   const m = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agust','Sep','Okt','Nov','Des'];
   const d = new Date();

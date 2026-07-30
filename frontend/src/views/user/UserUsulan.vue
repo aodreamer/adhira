@@ -85,8 +85,8 @@
     <div v-else-if="!loadingProfile" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <form @submit.prevent="handleUpload" class="space-y-6">
         <div>
-          <label class="block text-xs font-medium text-gray-600 mb-1">Jenis Penghargaan yang Diusulkan</label>
-          <select v-model="form.jenis_penghargaan" class="w-full sm:w-80 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
+          <label class="block text-xs font-medium text-gray-600 mb-1">Jenis Penghargaan yang Diusulkan <span class="text-red-500">*</span></label>
+          <select v-model="form.jenis_penghargaan" required class="w-full sm:w-80 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
             <option value="">Pilih jenis...</option>
             <option value="10 Tahun">Dharma Persandian 10 Tahun</option>
             <option value="20 Tahun">Dharma Persandian 20 Tahun</option>
@@ -96,52 +96,90 @@
 
         <div class="border-t border-gray-100 pt-5">
           <div class="flex items-center justify-between mb-1">
-            <h4 class="text-sm font-semibold text-gray-700">Dokumen Pendukung</h4>
-            <span class="text-[11px] text-gray-400">{{ uploadedCount }}/{{ fileColumns.length }} berkas tersimpan</span>
+            <h4 class="text-sm font-semibold text-gray-700">Berkas Wajib</h4>
+            <span class="text-[11px] font-medium" :class="requiredUploadedCount === visibleRequiredDocs.length ? 'text-emerald-600' : 'text-amber-600'">
+              {{ requiredUploadedCount }}/{{ visibleRequiredDocs.length }} syarat wajib terpenuhi
+            </span>
           </div>
-          <p class="text-xs text-gray-400 mb-4">Format PDF, DOC, DOCX, PNG, atau JPG — maksimal 2MB per berkas.</p>
+          <p class="text-xs text-gray-400 mb-4">Format PDF, DOC, DOCX, PNG, atau JPG — maksimal 2MB per berkas. Berkas boleh diupload satu per satu dan disimpan bertahap.</p>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-6">
             <div
-              v-for="fc in fileColumns"
-              :key="fc"
+              v-for="doc in visibleRequiredDocs"
+              :key="doc.col"
               class="border rounded-xl p-3 transition"
-              :class="selectedFiles[fc] ? 'border-blue-200 bg-blue-50/40' : existing[fc] ? 'border-emerald-200 bg-emerald-50/40' : 'border-gray-200 bg-gray-50/50'"
+              :class="selectedFiles[doc.col] ? 'border-blue-200 bg-blue-50/40' : existing[doc.col] ? 'border-emerald-200 bg-emerald-50/40' : 'border-amber-200 bg-amber-50/30'"
             >
               <div class="flex items-start gap-2.5">
                 <div
                   class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                  :class="selectedFiles[fc] ? 'bg-blue-100 text-blue-600' : existing[fc] ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'"
+                  :class="selectedFiles[doc.col] ? 'bg-blue-100 text-blue-600' : existing[doc.col] ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-500'"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <div class="text-xs font-medium text-gray-700 truncate">{{ labelMap[fc] }}</div>
+                  <div class="text-xs font-medium text-gray-700">{{ doc.label }} <span class="text-red-500">*</span></div>
                   <div class="text-[11px] mt-0.5 truncate">
-                    <span v-if="selectedFiles[fc]" class="text-blue-600">{{ selectedFiles[fc].name }} · {{ formatSize(selectedFiles[fc].size) }}</span>
-                    <button v-else-if="existing[fc]" type="button" @click="openPreview('/user/self/usulan/download/' + fc, existing[fc])" class="text-emerald-600 hover:underline">
+                    <span v-if="selectedFiles[doc.col]" class="text-blue-600">{{ selectedFiles[doc.col].name }} · {{ formatSize(selectedFiles[doc.col].size) }}</span>
+                    <button v-else-if="existing[doc.col]" type="button" @click="openPreview('/user/self/usulan/download/' + doc.col, existing[doc.col])" class="text-emerald-600 hover:underline">
+                      Berkas tersimpan · Lihat
+                    </button>
+                    <span v-else class="text-amber-600">Belum ada berkas</span>
+                  </div>
+                </div>
+              </div>
+              <p v-if="judulForm[doc.titleCol]" class="text-[11px] text-gray-500 mt-2 italic truncate">{{ judulForm[doc.titleCol] }}</p>
+              <div class="mt-2.5 flex items-center gap-2">
+                <button type="button" @click="pickFile(doc)" class="flex-1 text-center text-[11px] font-medium py-1.5 rounded-lg bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+                  {{ existing[doc.col] || selectedFiles[doc.col] ? 'Ganti Berkas' : 'Pilih Berkas' }}
+                </button>
+                <button v-if="selectedFiles[doc.col]" type="button" @click="clearFile(doc.col)" class="text-[11px] text-red-500 hover:underline flex-shrink-0">
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="text-sm font-semibold text-gray-700 mb-1">Berkas Pendukung (Opsional)</h4>
+          <p class="text-xs text-gray-400 mb-4">Piagam penghargaan yang sudah pernah diterima, bila ada.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div
+              v-for="doc in OPTIONAL_DOCS"
+              :key="doc.col"
+              class="border rounded-xl p-3 transition"
+              :class="selectedFiles[doc.col] ? 'border-blue-200 bg-blue-50/40' : existing[doc.col] ? 'border-emerald-200 bg-emerald-50/40' : 'border-gray-200 bg-gray-50/50'"
+            >
+              <div class="flex items-start gap-2.5">
+                <div
+                  class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  :class="selectedFiles[doc.col] ? 'bg-blue-100 text-blue-600' : existing[doc.col] ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-medium text-gray-700">{{ doc.label }}</div>
+                  <div class="text-[11px] mt-0.5 truncate">
+                    <span v-if="selectedFiles[doc.col]" class="text-blue-600">{{ selectedFiles[doc.col].name }} · {{ formatSize(selectedFiles[doc.col].size) }}</span>
+                    <button v-else-if="existing[doc.col]" type="button" @click="openPreview('/user/self/usulan/download/' + doc.col, existing[doc.col])" class="text-emerald-600 hover:underline">
                       Berkas tersimpan · Lihat
                     </button>
                     <span v-else class="text-gray-400">Belum ada berkas</span>
                   </div>
                 </div>
               </div>
-              <p v-if="fileErrors[fc]" class="text-[11px] text-red-500 mt-2">{{ fileErrors[fc] }}</p>
+              <p v-if="judulForm[doc.titleCol]" class="text-[11px] text-gray-500 mt-2 italic truncate">{{ judulForm[doc.titleCol] }}</p>
               <div class="mt-2.5 flex items-center gap-2">
-                <label class="flex-1 cursor-pointer text-center text-[11px] font-medium py-1.5 rounded-lg bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
-                  {{ existing[fc] || selectedFiles[fc] ? 'Ganti Berkas' : 'Pilih Berkas' }}
-                  <input type="file" class="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" @change="onFileChange(fc, $event)" />
-                </label>
-                <button v-if="selectedFiles[fc]" type="button" @click="clearFile(fc)" class="text-[11px] text-red-500 hover:underline flex-shrink-0">
+                <button type="button" @click="pickFile(doc)" class="flex-1 text-center text-[11px] font-medium py-1.5 rounded-lg bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+                  {{ existing[doc.col] || selectedFiles[doc.col] ? 'Ganti Berkas' : 'Pilih Berkas' }}
+                </button>
+                <button v-if="selectedFiles[doc.col]" type="button" @click="clearFile(doc.col)" class="text-[11px] text-red-500 hover:underline flex-shrink-0">
                   Batal
                 </button>
               </div>
             </div>
           </div>
         </div>
-
-        <p v-if="formError" class="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{{ formError }}</p>
-        <p v-if="formSuccess" class="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg">{{ formSuccess }}</p>
 
         <div class="flex justify-end pt-3 border-t border-gray-100">
           <button type="submit" :disabled="saving" class="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-50 shadow-sm">
@@ -162,6 +200,11 @@ import { buildCertificateLine } from '../../constants/certificate';
 import { useFilePreview } from '../../composables/useFilePreview';
 import StatusBadge from '../../components/shared/StatusBadge.vue';
 import FilePreviewModal from '../../components/shared/FilePreviewModal.vue';
+import { REQUIRED_DOCS, OPTIONAL_DOCS, APPLICANT_DOCS } from '../../constants/documents';
+import { isAsnTrackInstansi } from '../../constants/rank-data';
+import { useAlert } from '../../composables/useAlert';
+
+const { alertSuccess, alertError, alertWarning, promptFileUpload } = useAlert();
 
 const { previewState, openPreview, closePreview } = useFilePreview();
 
@@ -176,8 +219,12 @@ const loadingProfile = ref(true);
 const form = reactive({ jenis_penghargaan: '' });
 const existing = reactive({});
 const selectedFiles = reactive({});
-const fileErrors = reactive({});
-const formError = ref(''); const formSuccess = ref(''); const saving = ref(false);
+const judulForm = reactive({
+  judul_ktp: '', judul_drh: '', judul_surat_usulan: '', judul_sk_cpns_pns: '', judul_pengangkatan: '', judul_keputusan_jabatan: '', judul_piagam_penghargaan: '',
+});
+const saving = ref(false);
+
+const visibleRequiredDocs = computed(() => REQUIRED_DOCS.filter((d) => !d.asnOnly || isAsnTrackInstansi(identity.instansi)));
 
 const missingFields = computed(() => {
   const missing = [];
@@ -196,37 +243,29 @@ const missingFields = computed(() => {
 });
 const profileComplete = computed(() => missingFields.value.length === 0);
 
-const fileColumns = ['file_kepka', 'file_ktp', 'file_drh', 'file_pengangkatan', 'file_keputusan_jabatan', 'file_piagam_x', 'file_piagam_xx', 'file_piagam_xxx', 'file_piagam_adibhakti', 'file_piagam_tokoh'];
-const labelMap = { file_kepka: 'KEPKA', file_ktp: 'KTP', file_drh: 'DRH', file_pengangkatan: 'Pengangkatan', file_keputusan_jabatan: 'Kep. Jabatan', file_piagam_x: 'Piagam X', file_piagam_xx: 'Piagam XX', file_piagam_xxx: 'Piagam XXX', file_piagam_adibhakti: 'Adibhakti', file_piagam_tokoh: 'Tokoh' };
-const ALLOWED_EXT = ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'];
-const MAX_SIZE = 2 * 1024 * 1024;
+const fileColumns = APPLICANT_DOCS.map((d) => d.col);
 
-const uploadedCount = computed(() => fileColumns.filter(fc => existing[fc] || selectedFiles[fc]).length);
+const requiredUploadedCount = computed(() => visibleRequiredDocs.value.filter((d) => existing[d.col] || selectedFiles[d.col]).length);
 
 function formatSize(bytes) {
   return bytes < 1024 * 1024 ? (bytes / 1024).toFixed(0) + ' KB' : (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-function onFileChange(fc, event) {
-  const file = event.target.files?.[0];
-  event.target.value = '';
-  if (!file) return;
-  fileErrors[fc] = '';
-  const ext = '.' + file.name.split('.').pop().toLowerCase();
-  if (!ALLOWED_EXT.includes(ext)) {
-    fileErrors[fc] = 'Format tidak didukung';
-    return;
-  }
-  if (file.size > MAX_SIZE) {
-    fileErrors[fc] = 'Ukuran melebihi 2MB';
-    return;
-  }
-  selectedFiles[fc] = file;
+// Nama berkas & judul ditanyakan sekaligus lewat modal SweetAlert, bukan
+// input file + input teks terpisah di kartu.
+async function pickFile(doc) {
+  const result = await promptFileUpload({
+    title: doc.label,
+    titleLabel: doc.titleCol ? 'Judul Berkas' : undefined,
+    currentTitle: doc.titleCol ? (judulForm[doc.titleCol] || '') : '',
+  });
+  if (!result) return;
+  selectedFiles[doc.col] = result.file;
+  if (doc.titleCol) judulForm[doc.titleCol] = result.judul;
 }
 
 function clearFile(fc) {
   delete selectedFiles[fc];
-  fileErrors[fc] = '';
 }
 
 async function loadProfile() {
@@ -249,6 +288,7 @@ async function loadProfile() {
     identity.verifikasi_berkas_catatan = data.verifikasi_berkas_catatan || '';
     form.jenis_penghargaan = data.jenis_penghargaan || '';
     fileColumns.forEach(fc => { existing[fc] = data[fc] || ''; });
+    Object.keys(judulForm).forEach(jc => { judulForm[jc] = data[jc] || ''; });
   } finally {
     loadingProfile.value = false;
   }
@@ -257,23 +297,31 @@ async function loadProfile() {
 onMounted(() => { loadProfile().catch(() => {}); });
 
 async function handleUpload() {
-  saving.value = true; formError.value = ''; formSuccess.value = '';
+  if (!form.jenis_penghargaan) {
+    alertWarning('Belum Lengkap', 'Jenis penghargaan wajib dipilih terlebih dahulu.');
+    return;
+  }
+  saving.value = true;
   const wasRejected = identity.verifikasi_berkas_status === 'Ditolak';
   const hadNewFiles = Object.keys(selectedFiles).length > 0;
   try {
     const fd = new FormData();
     fd.append('nipnrp', identity.nipnrp);
     if (form.jenis_penghargaan) fd.append('jenis_penghargaan', form.jenis_penghargaan);
+    for (const [jc, val] of Object.entries(judulForm)) if (val) fd.append(jc, val);
     for (const [fc, file] of Object.entries(selectedFiles)) fd.append(fc, file);
 
     await api.put('/user/self/usulan', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
     for (const fc of Object.keys(selectedFiles)) delete selectedFiles[fc];
     await loadProfile();
-    formSuccess.value = wasRejected && hadNewFiles && identity.verifikasi_berkas_status !== 'Ditolak'
-      ? 'Berkas berhasil diupload dan diajukan ulang untuk verifikasi.'
-      : 'Berkas berhasil diupload!';
+    alertSuccess(
+      'Berhasil!',
+      wasRejected && hadNewFiles && identity.verifikasi_berkas_status !== 'Ditolak'
+        ? 'Berkas berhasil diupload dan diajukan ulang untuk verifikasi.'
+        : 'Berkas usulan berhasil diupload.'
+    );
   } catch (err) {
-    formError.value = err.response?.data?.error || 'Gagal upload';
+    alertError('Gagal Upload', err.response?.data?.error || 'Terjadi kesalahan saat mengupload berkas. Silakan coba lagi.');
   } finally { saving.value = false; }
 }
 </script>

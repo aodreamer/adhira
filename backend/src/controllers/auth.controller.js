@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const pool = require('../config/database');
 const UserModel = require('../models/user.model');
+const VerifikatorModel = require('../models/verifikator.model');
+const CodeModel = require('../models/verifikator-code.model');
 
 const loginLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
@@ -57,7 +59,14 @@ async function login(req, res) {
     const payload = { id_user: user.id_user, username: user.username, nama: user.nama, level: user.level };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '2h' });
 
-    res.json({ token, user: { id_user: user.id_user, username: user.username, nama: user.nama, level: user.level } });
+    res.json({
+      token,
+      user: {
+        id_user: user.id_user, username: user.username, nama: user.nama, level: user.level,
+        must_change_password: user.must_change_password === 1,
+        reg_status: user.reg_status || null,
+      },
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Terjadi kesalahan internal' });
@@ -74,7 +83,7 @@ async function register(req, res) {
   try {
     // level is always forced to 'User' here — registration can never grant
     // elevated access; only an existing Admin can promote an account later.
-    const { nama, email, hp, username, password, nipnrp, instansi, jabatan, pangkat } = req.body;
+    const { nama, email, hp, username, password, nipnrp, instansi, jabatan, unit_kerja, pangkat } = req.body;
 
     const exists = await UserModel.findByUsername(username);
     if (exists) return res.status(400).json({ error: 'Username sudah terdaftar' });
@@ -90,9 +99,9 @@ async function register(req, res) {
     });
 
     await pool.query(
-      `INSERT INTO data_individu (nipnrp, nama, instansi, jabatan, pangkat, jenis_penghargaan, tgl_penghargaan, tgl_upload)
-       VALUES ($1,$2,$3,$4,$5,'Sedang Diajukan',CURRENT_DATE,CURRENT_DATE)`,
-      [nipnrp, nama, instansi || '', jabatan || '', pangkat || '']
+      `INSERT INTO data_individu (nipnrp, nama, instansi, jabatan, unit_kerja, pangkat, jenis_penghargaan, tgl_penghargaan, tgl_upload, id_user)
+       VALUES ($1,$2,$3,$4,$5,$6,'Sedang Diajukan',CURRENT_DATE,CURRENT_DATE,$7)`,
+      [nipnrp, nama, instansi || '', jabatan || '', unit_kerja || '', pangkat || '', user.id_user]
     );
 
     res.status(201).json({
@@ -111,4 +120,43 @@ async function register(req, res) {
   }
 }
 
-module.exports = { login, me, register, loginLimiter, registerLimiter };
+// Registrasi mandiri untuk perwakilan instansi (Dewan Penghargaan). Akun
+// dibuat dengan level Verifikator langsung, tapi reg_status='Pending'
+// mengunci akses ke fitur Verifikator biasa sampai Admin acc berkas
+// registrasinya (lihat router guard di frontend dan authorize di routes).
+async function registerVerifikator(req, res) {
+  try {
+    const { kode_pendaftaran, nama, email, hp, username, password, instansi, nipnrp, jabatan, unit_kerja, pangkat } = req.body;
+
+    const code = await CodeModel.findValidByKode(kode_pendaftaran);
+    if (!code) return res.status(400).json({ error: 'Kode pendaftaran tidak valid atau sudah kadaluarsa' });
+
+    const exists = await UserModel.findByUsername(username);
+    if (exists) return res.status(400).json({ error: 'Username sudah terdaftar' });
+
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await UserModel.create({
+      nama, email, hp, username, password: hashed, level: 'Verifikator', is_active: 1, reg_status: 'Pending',
+      reg_nipnrp: nipnrp, reg_pangkat: pangkat, reg_jabatan: jabatan, reg_unit_kerja: unit_kerja,
+      reg_code_id: code.id,
+    });
+
+    await VerifikatorModel.setScope(user.id_user, [instansi]);
+
+    res.status(201).json({
+      message: 'Registrasi berhasil. Silakan login untuk mengupload surat usulan dan menunggu persetujuan Admin.',
+      user: { id_user: user.id_user, username: user.username, nama: user.nama, level: user.level },
+    });
+  } catch (err) {
+    console.error('Register verifikator error:', err);
+    if (err.constraint === 'mst_user_username_key') {
+      return res.status(400).json({ error: 'Username sudah terdaftar' });
+    }
+    if (err.constraint === 'idx_user_email_unique') {
+      return res.status(400).json({ error: 'Email sudah terdaftar' });
+    }
+    res.status(500).json({ error: 'Terjadi kesalahan saat registrasi' });
+  }
+}
+
+module.exports = { login, me, register, registerVerifikator, loginLimiter, registerLimiter };

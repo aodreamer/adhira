@@ -18,6 +18,13 @@
         <form @submit.prevent="handleRegister" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap <span class="text-red-500">*</span></label><input v-model="form.nama" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Instansi <span class="text-red-500">*</span></label>
+              <select v-model="form.instansi" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
+                <option value="" disabled>Pilih instansi</option>
+                <option v-for="opt in INSTANSI_OPTIONS" :key="opt" :value="opt">{{ opt }}</option>
+              </select>
+            </div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">NIP/NRP <span class="text-red-500">*</span></label><input v-model="form.nipnrp" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">Username <span class="text-red-500">*</span></label><input v-model="form.username" required minlength="3" maxlength="50" pattern="[a-zA-Z0-9._-]+" title="Huruf, angka, titik, garis bawah, atau strip" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
             <div>
@@ -32,14 +39,8 @@
             </div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">Email <span class="text-red-500">*</span></label><input v-model="form.email" type="email" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">No HP <span class="text-red-500">*</span></label><input v-model="form.hp" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Instansi <span class="text-red-500">*</span></label>
-              <select v-model="form.instansi" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
-                <option value="" disabled>Pilih instansi</option>
-                <option v-for="opt in INSTANSI_OPTIONS" :key="opt" :value="opt">{{ opt }}</option>
-              </select>
-            </div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">Jabatan <span class="text-red-500">*</span></label><input v-model="form.jabatan" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
+            <div><label class="block text-xs font-medium text-gray-600 mb-1">Unit Kerja <span class="text-red-500">*</span></label><input v-model="form.unit_kerja" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-medium text-gray-600 mb-1">Pangkat/Golongan <span class="text-red-500">*</span></label>
               <select v-model="form.pangkat" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
@@ -88,7 +89,10 @@ import {
   INSTANSI_OPTIONS, PANGKAT_TNI_AD, PANGKAT_TNI_AU, PANGKAT_TNI_AL, PANGKAT_POLRI, PANGKAT_PNS,
 } from '../../constants/rank-data';
 
-const form = ref({ nama: '', nipnrp: '', username: '', password: '', confirmPassword: '', email: '', hp: '', instansi: '', jabatan: '', pangkat: '' });
+// NIP/NRP satu field saja (tidak dibedakan per instansi -- bisa saja ASN
+// bertugas di lingkungan Polri/TNI atau sebaliknya). Golongan/pangkat juga
+// sengaja ditampilkan semua (tidak difilter per instansi).
+const form = ref({ nama: '', nipnrp: '', username: '', password: '', confirmPassword: '', email: '', hp: '', instansi: '', jabatan: '', unit_kerja: '', pangkat: '' });
 const error = ref(''); const success = ref(''); const loading = ref(false);
 
 async function handleRegister() {

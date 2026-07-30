@@ -8,6 +8,7 @@
 defineProps({ status: String });
 const classMap = {
   Menunggu: 'bg-yellow-100 text-yellow-700',
+  Pending: 'bg-yellow-100 text-yellow-700',
   Disetujui: 'bg-emerald-100 text-emerald-700',
   Ditolak: 'bg-red-100 text-red-700',
 };

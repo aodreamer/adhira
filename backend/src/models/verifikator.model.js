@@ -79,6 +79,15 @@ const VerifikatorModel = {
     return { data, berkas };
   },
 
+  // Keputusan Admin "mengunci" field verifikasi ini dari Verifikator (lihat
+  // pengecekan di verifikator.controller.js) -- Admin sendiri tidak pernah
+  // dikunci, selalu bisa override siapapun.
+  async isSetByAdmin(idUser) {
+    if (!idUser) return false;
+    const { rows } = await pool.query('SELECT level FROM mst_user WHERE id_user = $1', [idUser]);
+    return rows[0]?.level === 'Admin';
+  },
+
   async setVerifikasiData(id, { status, oleh, catatan }) {
     const { rows } = await pool.query(
       `UPDATE data_individu

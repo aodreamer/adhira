@@ -42,10 +42,10 @@
 
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-sm font-semibold text-gray-800 mb-4">Status Berkas</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div v-for="fc in fileColumns" :key="fc" class="text-center p-3 rounded-xl border" :class="profile[fc] ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50'">
-            <div class="text-[10px] text-gray-400 mb-1">{{ labelMap[fc] || fc }}</div>
-            <div v-if="profile[fc]" class="text-emerald-600 text-xs font-medium">Terupload</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div v-for="doc in APPLICANT_DOCS" :key="doc.col" class="text-center p-3 rounded-xl border" :class="profile[doc.col] ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50'">
+            <div class="text-[10px] text-gray-400 mb-1 truncate" :title="doc.label">{{ doc.label }}</div>
+            <div v-if="profile[doc.col]" class="text-emerald-600 text-xs font-medium">Terupload</div>
             <div v-else class="text-gray-300 text-xs">Belum</div>
           </div>
         </div>
@@ -64,6 +64,7 @@ import { ref, computed, onMounted } from 'vue';
 import api from '../../api/client';
 import { useAuthStore } from '../../stores/auth';
 import StatusBadge from '../../components/shared/StatusBadge.vue';
+import { APPLICANT_DOCS } from '../../constants/documents';
 const authStore = useAuthStore();
 const profile = ref(null);
 const loading = ref(true);
@@ -73,9 +74,6 @@ const statusClass = computed(() => {
   if (!s || s==='Sedang Diajukan') return 'bg-yellow-100 text-yellow-700';
   return 'bg-emerald-100 text-emerald-700';
 });
-
-const fileColumns = ['file_kepka','file_ktp','file_drh','file_pengangkatan','file_keputusan_jabatan','file_piagam_x','file_piagam_xx','file_piagam_xxx','file_piagam_adibhakti','file_piagam_tokoh'];
-const labelMap = { file_kepka:'KEPKA',file_ktp:'KTP',file_drh:'DRH',file_pengangkatan:'Pengangkatan',file_keputusan_jabatan:'Kep.Jabatan',file_piagam_x:'Piagam X',file_piagam_xx:'Piagam XX',file_piagam_xxx:'Piagam XXX',file_piagam_adibhakti:'Adibhakti',file_piagam_tokoh:'Tokoh'};
 
 onMounted(async () => {
   try {

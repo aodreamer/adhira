@@ -98,6 +98,11 @@ const selfProfileSchema = Joi.object({
       'any.invalid': 'Kabupaten/Kota wajib dipilih',
     }),
   }),
+  tgl_tmt_cpns_pns: Joi.date().allow(null, ''),
+  masa_kerja_kumulatif_tahun: Joi.number().integer().min(0).allow(null, ''),
+  masa_kerja_kumulatif_bulan: Joi.number().integer().min(0).max(11).allow(null, ''),
+  masa_kerja_pengurangan_tahun: Joi.number().integer().min(0).allow(null, ''),
+  masa_kerja_pengurangan_bulan: Joi.number().integer().min(0).max(11).allow(null, ''),
 })
   .min(1)
   .custom((value, helpers) => {

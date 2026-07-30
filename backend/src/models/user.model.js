@@ -22,7 +22,7 @@ const UserModel = {
 
   async findById(id) {
     const { rows } = await pool.query(
-      'SELECT id_user, nama, email, hp, username, level, image, date_created, is_active, last_login_at FROM mst_user WHERE id_user = $1',
+      'SELECT id_user, nama, email, hp, username, level, image, date_created, is_active, last_login_at, must_change_password, reg_status, reg_catatan FROM mst_user WHERE id_user = $1',
       [id]
     );
     return rows[0] || null;
@@ -36,10 +36,17 @@ const UserModel = {
     return rows[0] || null;
   },
 
-  async create(data) {
-    const { rows } = await pool.query(
-      'INSERT INTO mst_user (nama, email, hp, username, password, level, image, date_created, is_active) VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE,$8) RETURNING id_user, nama, email, hp, username, level, date_created, is_active',
-      [data.nama, data.email, data.hp, data.username, data.password, data.level || 'User', data.image || 'default.jpg', data.is_active ?? 1]
+  // db defaults to the shared pool; pass a transaction client to participate
+  // in a caller's BEGIN/COMMIT (e.g. bulk-import's confirmBatch).
+  async create(data, db = pool) {
+    const { rows } = await db.query(
+      `INSERT INTO mst_user (nama, email, hp, username, password, level, image, date_created, is_active, must_change_password, reg_status, reg_nipnrp, reg_pangkat, reg_jabatan, reg_unit_kerja, reg_code_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id_user, nama, email, hp, username, level, date_created, is_active, reg_status`,
+      [
+        data.nama, data.email, data.hp, data.username, data.password, data.level || 'User', data.image || 'default.jpg',
+        data.is_active ?? 1, data.must_change_password ?? 0, data.reg_status || null, data.reg_nipnrp || null, data.reg_pangkat || null,
+        data.reg_jabatan || null, data.reg_unit_kerja || null, data.reg_code_id || null,
+      ]
     );
     return rows[0];
   },

@@ -1,5 +1,13 @@
 <template>
   <div class="space-y-6">
+    <div v-if="authStore.user?.must_change_password" class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+      <h4 class="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
+        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l6.518 11.59c.75 1.334-.213 2.987-1.743 2.987H3.482c-1.53 0-2.493-1.653-1.743-2.987l6.518-11.59zM11 14a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        Wajib Ganti Password
+      </h4>
+      <p class="text-xs text-amber-700 mt-1">Akun Anda dibuat dari usulan massal dengan password sementara. Silakan ganti password pada bagian "Ubah Password" di bawah sebelum melanjutkan.</p>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <h3 class="text-sm font-semibold text-gray-800 mb-4">Profil Saya</h3>
       <form @submit.prevent="handleProfileSave" class="space-y-4">
@@ -109,6 +117,31 @@
               </div>
             </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-dashed border-gray-200">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">TMT CPNS/PNS di Persandian</label>
+                <input v-model="profileForm.tgl_tmt_cpns_pns" type="date" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Masa Kerja Kumulatif (ASN/Aparatur)</label>
+                <div class="flex gap-2">
+                  <input v-model.number="profileForm.masa_kerja_kumulatif_tahun" type="number" min="0" placeholder="Tahun" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+                  <input v-model.number="profileForm.masa_kerja_kumulatif_bulan" type="number" min="0" max="11" placeholder="Bulan" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Masa Kerja Pengurangan (di luar Persandian)</label>
+                <div class="flex gap-2">
+                  <input v-model.number="profileForm.masa_kerja_pengurangan_tahun" type="number" min="0" placeholder="Tahun" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+                  <input v-model.number="profileForm.masa_kerja_pengurangan_bulan" type="number" min="0" max="11" placeholder="Bulan" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Masa Kerja di Persandian (otomatis)</label>
+                <div class="w-full border border-gray-200 bg-gray-50 rounded-xl px-3 py-2.5 text-sm text-gray-600">{{ masaKerjaPersandian.tahun }} tahun {{ masaKerjaPersandian.bulan }} bulan</div>
+              </div>
+            </div>
+
             <p class="text-[11px] text-gray-400 mt-2">Data ini akan tampil di halaman Upload Berkas Usulan.</p>
           </div>
         </template>
@@ -159,17 +192,21 @@ import {
 } from '../../constants/rank-data';
 import { PROVINCES, REGENCIES } from '../../constants/wilayah';
 import { buildCertificateLine } from '../../constants/certificate';
+import { computeMasaKerjaPersandian } from '../../constants/masa-kerja';
 
 const authStore = useAuthStore();
 
 const profileForm = reactive({
   nama: '', email: '', hp: '', nipnrp: '', instansi: '', jabatan: '', unit_kerja: '', pangkat: '',
   pemda_tipe: '', pemda_provinsi: '', pemda_kabkota: '',
+  tgl_tmt_cpns_pns: '', masa_kerja_kumulatif_tahun: null, masa_kerja_kumulatif_bulan: null,
+  masa_kerja_pengurangan_tahun: null, masa_kerja_pengurangan_bulan: null,
   verifikasi_data_status: '', verifikasi_data_catatan: '',
 });
 const profileError = ref(''); const profileSuccess = ref(''); const profileLoading = ref(false);
 
 const certificatePreview = computed(() => buildCertificateLine(profileForm));
+const masaKerjaPersandian = computed(() => computeMasaKerjaPersandian(profileForm));
 
 const filteredRegencies = computed(() => {
   const type = profileForm.pemda_tipe === 'Pemerintah Kota' ? 'Kota' : 'Kabupaten';
@@ -210,6 +247,11 @@ async function loadProfile() {
     profileForm.pemda_tipe = data.pemda_tipe || '';
     profileForm.pemda_provinsi = data.pemda_provinsi || '';
     profileForm.pemda_kabkota = data.pemda_kabkota || '';
+    profileForm.tgl_tmt_cpns_pns = data.tgl_tmt_cpns_pns ? String(data.tgl_tmt_cpns_pns).slice(0, 10) : '';
+    profileForm.masa_kerja_kumulatif_tahun = data.masa_kerja_kumulatif_tahun ?? null;
+    profileForm.masa_kerja_kumulatif_bulan = data.masa_kerja_kumulatif_bulan ?? null;
+    profileForm.masa_kerja_pengurangan_tahun = data.masa_kerja_pengurangan_tahun ?? null;
+    profileForm.masa_kerja_pengurangan_bulan = data.masa_kerja_pengurangan_bulan ?? null;
     profileForm.verifikasi_data_status = data.verifikasi_data_status || '';
     profileForm.verifikasi_data_catatan = data.verifikasi_data_catatan || '';
   } catch {
@@ -234,6 +276,12 @@ async function handleProfileSave() {
       payload.pemda_tipe = isPemda ? profileForm.pemda_tipe : '';
       payload.pemda_provinsi = isPemda ? profileForm.pemda_provinsi : '';
       payload.pemda_kabkota = isPemda && profileForm.pemda_tipe !== 'Pemerintah Provinsi' ? profileForm.pemda_kabkota : '';
+      const toIntOrNull = (v) => (v === '' || v === null || v === undefined ? null : Number(v));
+      payload.tgl_tmt_cpns_pns = profileForm.tgl_tmt_cpns_pns || null;
+      payload.masa_kerja_kumulatif_tahun = toIntOrNull(profileForm.masa_kerja_kumulatif_tahun);
+      payload.masa_kerja_kumulatif_bulan = toIntOrNull(profileForm.masa_kerja_kumulatif_bulan);
+      payload.masa_kerja_pengurangan_tahun = toIntOrNull(profileForm.masa_kerja_pengurangan_tahun);
+      payload.masa_kerja_pengurangan_bulan = toIntOrNull(profileForm.masa_kerja_pengurangan_bulan);
     }
     const { data } = await api.put('/user/self/profile', payload);
     authStore.user = { ...authStore.user, nama: data.nama };
@@ -262,6 +310,10 @@ async function handlePasswordChange() {
     });
     passwordSuccess.value = 'Password berhasil diubah';
     passwordForm.currentPassword = ''; passwordForm.newPassword = ''; passwordForm.confirmPassword = '';
+    if (authStore.user?.must_change_password) {
+      authStore.user = { ...authStore.user, must_change_password: false };
+      localStorage.setItem('user', JSON.stringify(authStore.user));
+    }
   } catch (err) {
     passwordError.value = err.response?.data?.error || 'Gagal mengubah password';
   } finally { passwordLoading.value = false; }

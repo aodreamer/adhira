@@ -27,8 +27,8 @@ const route = useRoute();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const pageTitle = computed(() => {
-  const t = { Dashboard:'Beranda',ManUser:'Manajemen User',Individu:'Berkas Individu',Pemberitahuan:'Surat Pemberitahuan',Laporan:'Laporan Kegiatan',Usulan:'Usulan Penghargaan',Distribusi:'Distribusi',AdminAccount:'Profil Saya' };
-  return t[route.name] || 'Adhira';
+  const t = { Dashboard:'Beranda',ManUser:'Manajemen User',Individu:'Berkas Individu',Pemberitahuan:'Surat Pemberitahuan',Laporan:'Laporan Kegiatan',Usulan:'Usulan Penghargaan',Distribusi:'Distribusi',AdminVerifikatorRegistrations:'Persetujuan Verifikator',AdminAccount:'Profil Saya' };
+  return t[route.name] || 'ADHIRA';
 });
 const today = computed(() => {
   const m = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agust','Sep','Okt','Nov','Des'];

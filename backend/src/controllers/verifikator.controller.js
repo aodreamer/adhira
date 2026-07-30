@@ -6,7 +6,8 @@ const { safeUploadPath } = require('../middleware/upload');
 const uploadDirs = {
   file_kepka: 'kepka', file_ktp: 'ktp', file_drh: 'drh', file_pengangkatan: 'pengangkatan',
   file_keputusan_jabatan: 'keputusan', file_piagam_x: 'piagamx', file_piagam_xx: 'piagamxx',
-  file_piagam_xxx: 'piagamxxx', file_piagam_adibhakti: 'adibhakti', file_piagam_tokoh: 'tokoh',
+  file_piagam_xxx: 'piagamxxx',
+  file_surat_usulan: 'surat_usulan', file_sk_cpns_pns: 'sk_cpns_pns', file_piagam_penghargaan: 'piagam_penghargaan',
 };
 
 // GET /verifikator/scope
@@ -71,6 +72,9 @@ async function verifikasiData(req, res) {
     const userScope = await VerifikatorModel.getScope(req.user.id_user);
     const existing = await VerifikatorModel.findByIdInScope(req.params.id, userScope);
     if (!existing) return res.status(404).json({ error: 'Data tidak ditemukan atau di luar cakupan Anda' });
+    if (await VerifikatorModel.isSetByAdmin(existing.verifikasi_data_oleh)) {
+      return res.status(403).json({ error: 'Keputusan sudah dikunci oleh Admin' });
+    }
 
     const updated = await VerifikatorModel.setVerifikasiData(req.params.id, { status, oleh: req.user.id_user, catatan });
     res.json(updated);
@@ -90,6 +94,9 @@ async function verifikasiBerkas(req, res) {
     const userScope = await VerifikatorModel.getScope(req.user.id_user);
     const existing = await VerifikatorModel.findByIdInScope(req.params.id, userScope);
     if (!existing) return res.status(404).json({ error: 'Data tidak ditemukan atau di luar cakupan Anda' });
+    if (await VerifikatorModel.isSetByAdmin(existing.verifikasi_berkas_oleh)) {
+      return res.status(403).json({ error: 'Keputusan sudah dikunci oleh Admin' });
+    }
 
     const updated = await VerifikatorModel.setVerifikasiBerkas(req.params.id, { status, oleh: req.user.id_user, catatan });
     res.json(updated);
