@@ -27,6 +27,7 @@ suite('executive PostgreSQL aggregates', () => {
     expect(r.summary).toMatchObject({total:7,sesuai:2,menunggu:2,perbaikan:1,draft:2,sk_tersedia:1,tanggal_kosong:1,instansi_kosong:1});
     expect(r.stages.reduce((sum,s)=>sum+s.jumlah,0)).toBe(7);
     expect(r.institutions.reduce((sum,s)=>sum+s.total,0)).toBe(7);
+    expect(r.provinces.reduce((sum,s)=>sum+s.total,0)).toBe(7);
     expect(r.trend.reduce((sum,s)=>sum+s.total,0)).toBe(6);
     expect(r.options.tahun).toEqual([2026,2025]);
     expect(JSON.stringify(r)).not.toMatch(/sk\.pdf|nipnrp|file_kepka/);
@@ -52,5 +53,18 @@ suite('executive PostgreSQL aggregates', () => {
         (CURRENT_DATE - 30,'BSSN','Uji usia','Menunggu','Menunggu')`);
     const r=await loadExecutiveDashboard(pool,{tahun:null,instansi:'BSSN',jenis:'Uji usia'});
     expect(r.summary.total).toBe(2); expect(r.summary.menunggu_30_hari).toBe(1);
+  });
+  test('province aggregates follow filters without inferring location from non-Pemda institutions', async () => {
+    await pool.query(`INSERT INTO data_individu (tgl_upload,instansi,pemda_provinsi,jenis_penghargaan,verifikasi_data_status,verifikasi_berkas_status)
+      VALUES ('2026-01-01','Pemerintah Daerah',' Jawa Barat ','Uji peta','Disetujui','Disetujui'),
+        ('2026-02-01','Pemerintah Daerah','JAWA BARAT','Uji peta','Ditolak','Menunggu'),
+        ('2025-01-01','Pemerintah Daerah','BALI','Uji peta','Menunggu','Menunggu'),
+        ('2026-01-01','BSSN','DKI JAKARTA','Uji peta','Menunggu','Menunggu')`);
+    const r=await loadExecutiveDashboard(pool,{tahun:2026,instansi:null,jenis:'Uji peta'});
+    expect(r.summary.total).toBe(3);
+    expect(r.provinces.find(row=>row.provinsi==='JAWA BARAT')).toMatchObject({total:2,sesuai:1,perbaikan:1});
+    expect(r.provinces.find(row=>row.provinsi===null)).toMatchObject({total:1,menunggu:1});
+    expect(r.provinces.reduce((sum,row)=>sum+row.total,0)).toBe(3);
+    expect(r.provinces.some(row=>row.provinsi==='BALI')).toBe(false);
   });
 });

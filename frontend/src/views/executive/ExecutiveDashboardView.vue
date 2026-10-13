@@ -52,6 +52,8 @@
         </article>
       </section>
 
+      <IndonesiaMap :rows="report.provinces || []" />
+
       <div class="grid xl:grid-cols-3 gap-6">
         <section class="panel xl:col-span-2">
           <div class="flex justify-between items-start gap-3 mb-6"><div><h2 class="section-title">Status verifikasi</h2><p class="section-subtitle">Setiap pengusul dihitung pada satu status.</p></div><span class="text-sm font-semibold text-emerald-700">{{ percent(summary.sesuai, summary.total) }}% sesuai</span></div>
@@ -122,6 +124,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { UsersIcon, CheckCircleIcon, ClockIcon, DocumentCheckIcon, ExclamationTriangleIcon, ArrowPathIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/vue/24/outline';
 import api from '../../api/client';
 import BarChart from '../../components/shared/BarChart.vue';
+import IndonesiaMap from '../../components/executive/IndonesiaMap.vue';
 
 const filters = reactive({ tahun: '', instansi: '', jenis: '' });
 const options = reactive({ tahun: [], instansi: [], jenis: [] });

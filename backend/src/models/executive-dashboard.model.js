@@ -3,6 +3,7 @@ const BASE = `WITH records AS (
   SELECT COALESCE(tgl_upload, created_at::date) AS recorded_on,
     COALESCE(NULLIF(BTRIM(instansi), ''), 'Belum diisi') AS instansi,
     COALESCE(NULLIF(BTRIM(jenis_penghargaan), ''), 'Belum dipilih') AS jenis,
+    CASE WHEN instansi = 'Pemerintah Daerah' THEN NULLIF(UPPER(BTRIM(pemda_provinsi)), '') END AS provinsi,
     CASE
       WHEN instansi = 'Pemerintah Pusat' AND NULLIF(BTRIM(nama_instansi), '') IS NOT NULL
         THEN 'Pemerintah Pusat — ' || BTRIM(nama_instansi)
@@ -58,11 +59,13 @@ async function loadExecutiveDashboard(pool, filters) {
     const kinds = await client.query(`${BASE} SELECT jenis, COUNT(*)::int AS jumlah FROM filtered GROUP BY jenis ORDER BY jumlah DESC, jenis`, params);
     const institutions = await client.query(`${BASE} SELECT instansi_label AS instansi, ${COUNTS}
       FROM filtered GROUP BY instansi_label ORDER BY (COUNT(*) FILTER (WHERE tahap <> 'sesuai')) DESC, instansi_label`, params);
+    const provinces = await client.query(`${BASE} SELECT provinsi, ${COUNTS}
+      FROM filtered GROUP BY provinsi ORDER BY total DESC, provinsi NULLS LAST`, params);
     await client.query('COMMIT');
     return {
       updated_at: new Date().toISOString(),
       filters, options: options.rows[0], summary: summary.rows[0],
-      stages: stages.rows, trend: trend.rows, kinds: kinds.rows, institutions: institutions.rows,
+      stages: stages.rows, trend: trend.rows, kinds: kinds.rows, institutions: institutions.rows, provinces: provinces.rows,
       trend_unit: filters.tahun ? 'bulan' : 'tahun',
     };
   } catch (err) {
