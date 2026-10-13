@@ -4,14 +4,15 @@
     <input
       :value="modelValue"
       @input="$emit('update:modelValue', $event.target.value)"
-      type="text"
-      placeholder="Cari..."
+      :type="inputType"
+      :placeholder="placeholder"
+      :aria-label="label"
       class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
     />
   </div>
 </template>
 
 <script setup>
-defineProps({ modelValue: { type: String, default: '' } });
+defineProps({ modelValue:{type:String,default:''},placeholder:{type:String,default:'Cari...'},label:{type:String,default:'Cari data'},inputType:{type:String,default:'text'} });
 defineEmits(['update:modelValue']);
 </script>

@@ -76,6 +76,6 @@ export function useTable(rowsSource, { columns = [], pageSize: initialPageSize =
   return {
     search, sortKey, sortDir, pageSize,
     page: currentPage, totalItems, totalPages,
-    pageRows, toggleSort, goToPage,
+    pageRows, filteredRows: sorted, toggleSort, goToPage,
   };
 }

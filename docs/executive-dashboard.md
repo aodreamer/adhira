@@ -20,7 +20,11 @@ Dashboard ditujukan untuk pimpinan yang memantau proses pengusulan Dharma Persan
 6. Rekap instansi dengan total, lolos verifikasi, menunggu, perbaikan, draft, dan SK tersedia.
 7. Unduh rekap CSV sesuai filter dan cetak melalui browser.
 
-Warna utama navy, dengan aksen emas pada judul dan indikator total. Label serta angka selalu menyertai warna status. Layout mengikuti lebar layar; tabel dapat digeser secara horizontal pada layar kecil. Status memuat penjelasan ketika data kosong atau request gagal.
+Dashboard menggunakan `AppLayout`, `Sidebar`, dan `Topbar` yang sama dengan halaman Administrator. Kartu, panel, warna latar, tombol, pencarian, dan pagination mengikuti komponen serta gaya aplikasi yang sudah ada. Menu operasional ditampilkan sesuai role. Pada layar kecil, sidebar dibuka melalui tombol menu dan tabel menampilkan kartu per instansi. Label serta angka menyertai warna status. Kondisi kosong dan kegagalan request ditampilkan dengan keterangan.
+
+Chart.js menampilkan komposisi status, usia pencatatan pengusul yang masih menunggu, serta tren volume atau status. Motion for Vue mengatur transisi panel, angka indikator, dan pembesaran peta. Preferensi `prefers-reduced-motion` menonaktifkan animasi; cetak menampilkan nilai akhir.
+
+Prioritas koordinasi instansi dihitung dari jumlah pengusul perlu perbaikan dan pengusul menunggu minimal 30 hari sejak pencatatan. Klik instansi mengisi pencarian rekap. Matriks verifikasi menampilkan seluruh kombinasi keputusan data dan berkas, termasuk status yang belum dikenali. Indikator lolos verifikasi dengan SK belum tercatat ditampilkan terpisah. Tabel menggunakan pencarian, pengurutan, dan pagination bersama; ekspor serta cetak mencakup seluruh hasil pencarian, bukan hanya halaman aktif.
 
 ## Definisi indikator
 
@@ -61,6 +65,6 @@ Skema saat ini menyimpan `mst_user.level` sebagai VARCHAR, sehingga penambahan P
 
 ## Verifikasi rancangan
 
-Pengujian backend dan PostgreSQL: 46 test lulus. Empat pengujian frontend tambahan memeriksa cakupan geometri 38 provinsi, normalisasi nama, rekonsiliasi data belum terpetakan, dan kondisi kosong. Cakupan meliputi kategori status yang tidak tumpang tindih, rekonsiliasi total, kombinasi filter, data kosong, ambang usia 29/30 hari, penolakan filter tidak valid, pembatasan akses, dan pencabutan akses operasional setelah perubahan role.
+Pengujian backend dan PostgreSQL: 48 test lulus. Delapan pengujian frontend memeriksa cakupan geometri 38 provinsi, normalisasi nama, rekonsiliasi data belum terpetakan, dan kondisi kosong. Cakupan meliputi kategori status yang tidak tumpang tindih, rekonsiliasi total, kombinasi filter, data kosong, seluruh batas interval usia pencatatan, tanggal kosong atau masa depan, matriks keputusan, prioritas instansi, penolakan filter tidak valid, pembatasan akses, dan pencabutan akses operasional setelah perubahan role.
 
 Pratinjau browser diperiksa pada desktop 1440 px dan ponsel 390 px menggunakan 160 pengusul demonstrasi. Login Pimpinan, navigasi Administrator, pembuatan akun Pimpinan, ekspor CSV, layout cetak, serta kondisi kosong dan kegagalan request telah diperiksa. Build frontend berhasil.

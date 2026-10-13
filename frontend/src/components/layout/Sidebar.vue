@@ -20,15 +20,16 @@
         <div class="text-white font-bold text-base tracking-wide">ADHIRA</div>
         <div class="text-[9px] text-gray-400">Aplikasi Digital Penghargaan Dharma Persandian</div>
       </div>
-      <button @click="uiStore.closeMobileMenu()" class="ml-auto lg:hidden text-gray-400 hover:text-white">
+      <button @click="uiStore.closeMobileMenu()" aria-label="Tutup menu" class="ml-auto lg:hidden text-gray-400 hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-1">
-      <router-link to="/admin/executive" title="Executive Dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+    <nav @click="uiStore.closeMobileMenu()" class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-1">
+      <router-link :to="authStore.user?.level === 'Pimpinan' ? '/pimpinan' : '/admin/executive'" title="Executive Dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" exact-active-class="bg-gray-800 text-white font-medium">
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h16M6 16V9m6 7V4m6 12v-5"/></svg>
         <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Executive Dashboard</span>
       </router-link>
+      <template v-if="authStore.user?.level === 'Admin'">
       <router-link to="/admin" :title="uiStore.sidebarCollapsed ? 'Beranda' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" exact-active-class="bg-gray-800 text-white font-medium">
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Beranda</span>
@@ -65,9 +66,10 @@
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 11-12 0 6 6 0 0112 0zM3 21l2.5-2.5M6 18l2.121-2.121"/></svg>
         <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Kode Pendaftaran</span>
       </router-link>
+      </template>
     </nav>
     <div class="p-3 border-t border-gray-800 space-y-1">
-      <router-link to="/admin/account" :title="uiStore.sidebarCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+      <router-link @click="uiStore.closeMobileMenu()" :to="authStore.user?.level === 'Pimpinan' ? '/pimpinan/account' : '/admin/account'" :title="uiStore.sidebarCollapsed ? 'Profil Saya' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.23.6.77 1 1.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
         <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Profil Saya</span>
       </router-link>

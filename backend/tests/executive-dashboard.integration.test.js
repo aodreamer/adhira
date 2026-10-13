@@ -28,6 +28,10 @@ suite('executive PostgreSQL aggregates', () => {
     expect(r.stages.reduce((sum,s)=>sum+s.jumlah,0)).toBe(7);
     expect(r.institutions.reduce((sum,s)=>sum+s.total,0)).toBe(7);
     expect(r.provinces.reduce((sum,s)=>sum+s.total,0)).toBe(7);
+    expect(r.verification_matrix.reduce((sum,s)=>sum+s.jumlah,0)).toBe(7);
+    expect(r.waiting_age.reduce((sum,s)=>sum+s.jumlah,0)).toBe(r.summary.menunggu);
+    expect(r.summary.sesuai_tanpa_sk).toBe(1);
+    expect(r.institutions.reduce((sum,s)=>sum+s.menunggu_30_hari,0)).toBe(r.summary.menunggu_30_hari);
     expect(r.trend.reduce((sum,s)=>sum+s.total,0)).toBe(6);
     expect(r.options.tahun).toEqual([2026,2025]);
     expect(JSON.stringify(r)).not.toMatch(/sk\.pdf|nipnrp|file_kepka/);
@@ -66,5 +70,26 @@ suite('executive PostgreSQL aggregates', () => {
     expect(r.provinces.find(row=>row.provinsi===null)).toMatchObject({total:1,menunggu:1});
     expect(r.provinces.reduce((sum,row)=>sum+row.total,0)).toBe(3);
     expect(r.provinces.some(row=>row.provinsi==='BALI')).toBe(false);
+  });
+  test('waiting age bins include exact boundaries and preserve unknown and future dates',async()=>{
+    await pool.query(`INSERT INTO data_individu (tgl_upload,instansi,jenis_penghargaan,verifikasi_data_status,verifikasi_berkas_status)
+      SELECT CURRENT_DATE - n,'BSSN','Uji kelompok usia','Menunggu','Menunggu' FROM unnest(ARRAY[0,7,8,14,15,29,30,59,60,-1]) AS n`);
+    await pool.query(`INSERT INTO data_individu (instansi,jenis_penghargaan,verifikasi_data_status,verifikasi_berkas_status) VALUES ('BSSN','Uji kelompok usia','Menunggu','Menunggu')`);
+    const r=await loadExecutiveDashboard(pool,{tahun:null,instansi:'BSSN',jenis:'Uji kelompok usia'});
+    const counts=Object.fromEntries(r.waiting_age.map(row=>[row.kelompok,row.jumlah]));
+    expect(counts).toEqual({'0-7':2,'8-14':2,'15-29':2,'30-59':2,'60+':1,future:1,unknown:1});
+    expect(r.summary.menunggu).toBe(11);expect(r.summary.menunggu_30_hari).toBe(3);
+  });
+  test('matrix and SK gap follow the same filters without assuming SK implies verification',async()=>{
+    await pool.query(`INSERT INTO data_individu (tgl_upload,instansi,jenis_penghargaan,verifikasi_data_status,verifikasi_berkas_status,file_kepka)
+      VALUES ('2026-01-01','TNI','Uji matriks','Disetujui','Disetujui',NULL),
+        ('2026-01-01','TNI','Uji matriks','Disetujui','Disetujui','sk.pdf'),
+        ('2026-01-01','TNI','Uji matriks','Ditolak','Disetujui','sk.pdf'),
+        ('2026-01-01','TNI','Uji matriks','Status lama','Menunggu',NULL),
+        ('2025-01-01','TNI','Uji matriks','Disetujui','Disetujui',NULL)`);
+    const r=await loadExecutiveDashboard(pool,{tahun:2026,instansi:'TNI',jenis:'Uji matriks'});
+    expect(r.summary).toMatchObject({total:4,sesuai:2,sk_tersedia:2,sesuai_tanpa_sk:1});
+    expect(r.verification_matrix.reduce((sum,c)=>sum+c.jumlah,0)).toBe(4);
+    expect(r.verification_matrix.find(c=>c.status_data==='Lainnya')).toMatchObject({status_berkas:'Menunggu',jumlah:1});
   });
 });

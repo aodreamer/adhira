@@ -6,7 +6,7 @@
       </template>
       <template v-else>Tidak ada data</template>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2">
       <select
         :value="pageSize"
         @change="$emit('update:pageSize', Number($event.target.value))"

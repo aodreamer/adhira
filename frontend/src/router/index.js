@@ -42,7 +42,7 @@ const routes = [
   },
   {
     path: '/pimpinan',
-    component: () => import('../components/layout/ExecutiveLayout.vue'),
+    component: () => import('../components/layout/AppLayout.vue'),
     meta: { requiresAuth: true, role: 'Pimpinan' },
     children: [
       { path: '', name: 'ExecutiveDashboard', component: () => import('../views/executive/ExecutiveDashboardView.vue') },
