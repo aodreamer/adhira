@@ -7,7 +7,7 @@
     <div class="grid lg:grid-cols-[minmax(0,1fr)_290px]">
       <div class="min-w-0 bg-[#f5f8fb] relative">
         <div class="map-controls absolute top-3 right-3 z-10 flex gap-1 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-          <button @click="zoom = Math.min(4, zoom + 1)" :disabled="zoom === 4" class="control-button" aria-label="Perbesar peta"><PlusIcon class="h-4 w-4" /></button>
+          <button @click="zoom = Math.min(12, zoom + 1)" :disabled="zoom === 12" class="control-button" aria-label="Perbesar peta"><PlusIcon class="h-4 w-4" /></button>
           <button @click="zoom = Math.max(1, zoom - 1)" :disabled="zoom === 1" class="control-button" aria-label="Perkecil peta"><MinusIcon class="h-4 w-4" /></button>
           <button @click="zoom = 1" class="control-button" aria-label="Reset pembesaran peta"><ArrowsPointingOutIcon class="h-4 w-4" /></button>
         </div>
@@ -35,7 +35,7 @@
       </div>
       <div class="p-5 border-t lg:border-t-0 lg:border-l border-slate-200" role="complementary" aria-label="Ringkasan provinsi">
         <label class="text-xs font-semibold text-slate-600 block">Pilih provinsi
-          <select v-model="selected" class="block w-full mt-2 rounded-lg border-slate-200 text-sm font-normal focus:ring-blue-500 focus:border-blue-500"><option value="">Semua provinsi</option><option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{ region.name }}</option></select>
+          <select v-model="selected" @change="selectRegion(selected)" class="block w-full mt-2 rounded-lg border-slate-200 text-sm font-normal focus:ring-blue-500 focus:border-blue-500"><option value="">Semua provinsi</option><option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{ region.name }}</option></select>
         </label>
         <div v-if="selectedRegion" class="mt-6">
           <p class="text-xs text-slate-500 mb-2">Ringkasan provinsi</p><h3 class="font-semibold text-slate-800 mb-5">{{ selectedRegion.name }}</h3>
@@ -77,7 +77,15 @@ const topRegions = computed(() => [...mapData.value.regions].filter(r=>r.total).
 const number = value => new Intl.NumberFormat('id-ID').format(value || 0);
 const palette = ['#c6d9e9','#91b2ce','#547ba0','#142a48'];
 function fill(value) { return value ? palette[Math.min(3,Math.ceil(value/maximum.value*4)-1)] : '#dce4eb'; }
-function selectRegion(code) { selected.value = code; }
+function selectRegion(code) {
+  selected.value = code;
+  const bounds = selectedRegion.value?.bounds;
+  if (!bounds) { zoom.value = 1; return; }
+  const width = Math.max(1, bounds[2] - bounds[0]);
+  const height = Math.max(1, bounds[3] - bounds[1]);
+  // Fit the entire province with room around its coastline and islands.
+  zoom.value = Math.max(1.5, Math.min(12, Math.min(1060 / width, 440 / height) / 1.35));
+}
 const detailMetrics = [
   {key:'total',label:'Total pengusul',color:'text-slate-900'},
   {key:'sesuai',label:'Lolos verifikasi',color:'text-emerald-700'},
@@ -90,15 +98,15 @@ const viewBox = computed(() => {
   const width=1060/zoom.value, height=440/zoom.value;
   const bounds=selectedRegion.value?.bounds;
   const cx=bounds?(bounds[0]+bounds[2])/2:530, cy=bounds?(bounds[1]+bounds[3])/2:220;
-  const x=zoom.value===1?0:Math.max(0,Math.min(1060-width,cx-width/2));
-  const y=zoom.value===1?0:Math.max(0,Math.min(440-height,cy-height/2));
+  const x=zoom.value===1?0:cx-width/2;
+  const y=zoom.value===1?0:cy-height/2;
   return `${x} ${y} ${width} ${height}`;
 });
 </script>
 
 <style scoped>
 .control-button { @apply p-1.5 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30; }
-.province-shape { cursor:pointer; transition:fill 150ms; }
+.province-shape { cursor:pointer; transition:fill 150ms; outline:none; }
 .province-shape:hover, .province-shape:focus-visible { stroke:#be923f; stroke-width:2.5; outline:none; }
 @media print { .map-controls { display:none; } }
 </style>

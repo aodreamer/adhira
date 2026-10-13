@@ -51,7 +51,7 @@ Peta memuat batas 38 provinsi dari [Badan Informasi Geospasial](https://geoservi
 
 Agregasi provinsi memakai `pemda_provinsi` untuk record dengan instansi Pemerintah Daerah. BSSN, TNI, atau Pemerintah Pusat tidak diasumsikan berada di Jakarta atau provinsi tertentu. Nilai kosong dan nama yang belum dikenali dihitung sebagai belum terpetakan. Nama dibandingkan setelah normalisasi kapitalisasi dan spasi; varian DI Yogyakarta digabungkan dengan Daerah Istimewa Yogyakarta. Pengelompokan mengikuti nama provinsi yang tersimpan; data wilayah lama tidak dikoreksi otomatis berdasarkan perubahan administrasi.
 
-Warna menunjukkan jumlah pengusul, dengan legenda angka dan label nol. Pengguna dapat memilih provinsi melalui peta, keyboard, atau dropdown untuk melihat total dan statusnya. Tombol pembesaran tersedia. Filter tahun, kelompok instansi, dan jenis penghargaan berlaku pada seluruh data peta.
+Warna menunjukkan jumlah pengusul, dengan legenda angka dan label nol. Pengguna dapat memilih provinsi melalui peta, keyboard, atau dropdown untuk melihat total dan statusnya. Saat provinsi dipilih, peta otomatis diperbesar dan dipusatkan pada provinsi tersebut. Tingkat pembesaran mengikuti ukuran wilayah, dengan ruang di sekitar garis pantai dan pulau. Tombol pembesaran dan reset tetap tersedia. Filter tahun, kelompok instansi, dan jenis penghargaan berlaku pada seluruh data peta.
 
 ## Batasan dan pengembangan berikutnya
 
