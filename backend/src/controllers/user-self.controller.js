@@ -26,7 +26,7 @@ async function profile(req, res) {
   try {
     const { rows } = await pool.query(
       `SELECT u.id_user, u.nama, u.email, u.hp, u.username, u.level, u.image, u.date_created,
-              d.id as individu_id, d.nipnrp, d.instansi, d.jabatan, d.unit_kerja, d.pangkat, d.jenis_penghargaan,
+              d.id as individu_id, d.nipnrp, d.instansi, d.nama_instansi, d.jabatan, d.unit_kerja, d.pangkat, d.jenis_penghargaan,
               d.pemda_tipe, d.pemda_provinsi, d.pemda_kabkota,
               d.verifikasi_data_status, d.verifikasi_data_catatan,
               d.verifikasi_berkas_status, d.verifikasi_berkas_catatan,
@@ -55,7 +55,7 @@ async function profile(req, res) {
 async function updateProfile(req, res) {
   try {
     const {
-      nama, email, hp, instansi, jabatan, unit_kerja, pangkat, pemda_tipe, pemda_provinsi, pemda_kabkota,
+      nama, email, hp, instansi, nama_instansi, jabatan, unit_kerja, pangkat, pemda_tipe, pemda_provinsi, pemda_kabkota,
       tgl_tmt_cpns_pns, masa_kerja_kumulatif_tahun, masa_kerja_kumulatif_bulan,
       masa_kerja_pengurangan_tahun, masa_kerja_pengurangan_bulan,
     } = req.body;
@@ -77,7 +77,7 @@ async function updateProfile(req, res) {
 
     let updatedIndividu = null;
     const incomingIndividu = {
-      instansi, jabatan, unit_kerja, pangkat, pemda_tipe, pemda_provinsi, pemda_kabkota,
+      instansi, nama_instansi, jabatan, unit_kerja, pangkat, pemda_tipe, pemda_provinsi, pemda_kabkota,
       tgl_tmt_cpns_pns, masa_kerja_kumulatif_tahun, masa_kerja_kumulatif_bulan,
       masa_kerja_pengurangan_tahun, masa_kerja_pengurangan_bulan,
     };
@@ -97,6 +97,7 @@ async function updateProfile(req, res) {
     res.json({
       ...(updatedUser || {}),
       instansi: updatedIndividu?.instansi,
+      nama_instansi: updatedIndividu?.nama_instansi,
       jabatan: updatedIndividu?.jabatan,
       unit_kerja: updatedIndividu?.unit_kerja,
       pangkat: updatedIndividu?.pangkat,

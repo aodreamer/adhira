@@ -1,6 +1,37 @@
 const Joi = require('joi');
 const { password, username } = require('./common');
 const { INSTANSI_OPTIONS, PANGKAT_OPTIONS } = require('./rank-data');
+const { PROVINCES, REGENCIES } = require('./wilayah-data');
+
+const PEMDA_TIPE_OPTIONS = ['Pemerintah Provinsi', 'Pemerintah Kabupaten', 'Pemerintah Kota'];
+const PROVINCE_NAMES = PROVINCES.map((p) => p.name);
+const REGENCY_NAMES = REGENCIES.map((r) => r.name);
+
+// Shared pemda_tipe/pemda_provinsi/pemda_kabkota schema fragment: required
+// only when instansi === 'Pemerintah Daerah', mirroring the frontend's
+// conditional cascading selects (see AccountSettingsView.vue).
+function pemdaFields() {
+  return {
+    pemda_tipe: Joi.string().valid(...PEMDA_TIPE_OPTIONS).messages({ 'any.only': 'Jenis pemerintah daerah tidak valid' })
+      .when('instansi', {
+        is: Joi.string().valid('Pemerintah Daerah').required(),
+        then: Joi.required().messages({ 'any.required': 'Jenis pemerintah daerah wajib dipilih' }),
+        otherwise: Joi.optional().allow('', null),
+      }),
+    pemda_provinsi: Joi.string().valid(...PROVINCE_NAMES).messages({ 'any.only': 'Provinsi tidak valid' })
+      .when('instansi', {
+        is: Joi.string().valid('Pemerintah Daerah').required(),
+        then: Joi.required().messages({ 'any.required': 'Provinsi wajib dipilih' }),
+        otherwise: Joi.optional().allow('', null),
+      }),
+    pemda_kabkota: Joi.string().valid(...REGENCY_NAMES).messages({ 'any.only': 'Kabupaten/Kota tidak valid' })
+      .when('pemda_tipe', {
+        is: Joi.string().valid('Pemerintah Kabupaten', 'Pemerintah Kota').required(),
+        then: Joi.required().messages({ 'any.required': 'Kabupaten/Kota wajib dipilih' }),
+        otherwise: Joi.optional().allow('', null),
+      }),
+  };
+}
 
 const loginSchema = Joi.object({
   username: Joi.string().trim().required().messages({
@@ -41,6 +72,17 @@ const registerSchema = Joi.object({
     'any.only': 'Instansi tidak valid',
     'any.required': 'Instansi wajib dipilih',
   }),
+  nama_instansi: Joi.string().trim().min(2).max(255).messages({
+    'string.min': 'Nama instansi minimal 2 karakter',
+    'any.required': 'Nama instansi wajib diisi',
+  }).when('instansi', {
+    is: Joi.string().valid('Pemerintah Pusat').required(),
+    then: Joi.invalid('').required().messages({
+      'any.required': 'Nama instansi wajib diisi',
+      'any.invalid': 'Nama instansi wajib diisi',
+    }),
+    otherwise: Joi.optional().allow('', null),
+  }),
   jabatan: Joi.string().trim().min(2).max(255).required().messages({
     'string.min': 'Jabatan minimal 2 karakter',
     'any.required': 'Jabatan wajib diisi',
@@ -53,6 +95,7 @@ const registerSchema = Joi.object({
     'any.only': 'Pangkat/golongan tidak valid',
     'any.required': 'Pangkat/golongan wajib dipilih',
   }),
+  ...pemdaFields(),
 });
 
 // Registrasi mandiri untuk perwakilan instansi (Dewan Penghargaan / Verifikator).
@@ -87,6 +130,17 @@ const registerVerifikatorSchema = Joi.object({
     'any.only': 'Instansi tidak valid',
     'any.required': 'Instansi wajib dipilih',
   }),
+  nama_instansi: Joi.string().trim().min(2).max(255).messages({
+    'string.min': 'Nama instansi minimal 2 karakter',
+    'any.required': 'Nama instansi wajib diisi',
+  }).when('instansi', {
+    is: Joi.string().valid('Pemerintah Pusat').required(),
+    then: Joi.invalid('').required().messages({
+      'any.required': 'Nama instansi wajib diisi',
+      'any.invalid': 'Nama instansi wajib diisi',
+    }),
+    otherwise: Joi.optional().allow('', null),
+  }),
   nipnrp: Joi.string().trim().min(3).max(255).required().messages({
     'any.required': 'NIP/NRP wajib diisi',
   }),
@@ -102,6 +156,7 @@ const registerVerifikatorSchema = Joi.object({
     'any.only': 'Pangkat/golongan tidak valid',
     'any.required': 'Pangkat/golongan wajib dipilih',
   }),
+  ...pemdaFields(),
 });
 
 module.exports = { loginSchema, registerSchema, registerVerifikatorSchema };

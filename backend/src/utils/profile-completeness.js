@@ -13,6 +13,8 @@ function isProfileComplete(user, individu) {
     if (individu.pemda_tipe !== 'Pemerintah Provinsi' && !individu.pemda_kabkota) return false;
   }
 
+  if (individu.instansi === 'Pemerintah Pusat' && !individu.nama_instansi) return false;
+
   return true;
 }
 

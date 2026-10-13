@@ -46,6 +46,10 @@
           <div class="text-[11px] text-gray-400 mb-0.5">Pangkat/Golongan</div>
           <div class="text-gray-700">{{ identity.pangkat || '-' }}</div>
         </div>
+        <div v-if="identity.instansi === 'Pemerintah Pusat'">
+          <div class="text-[11px] text-gray-400 mb-0.5">Nama Instansi</div>
+          <div class="text-gray-700">{{ identity.nama_instansi || '-' }}</div>
+        </div>
         <div v-if="identity.instansi === 'Pemerintah Daerah'">
           <div class="text-[11px] text-gray-400 mb-0.5">Wilayah Pemda</div>
           <div class="text-gray-700">{{ pemdaWilayah }}</div>
@@ -209,7 +213,7 @@ const { alertSuccess, alertError, alertWarning, promptFileUpload } = useAlert();
 const { previewState, openPreview, closePreview } = useFilePreview();
 
 const identity = reactive({
-  email: '', hp: '', nipnrp: '', instansi: '', jabatan: '', unit_kerja: '', pangkat: '',
+  email: '', hp: '', nipnrp: '', instansi: '', nama_instansi: '', jabatan: '', unit_kerja: '', pangkat: '',
   pemda_tipe: '', pemda_provinsi: '', pemda_kabkota: '',
   verifikasi_data_status: '', verifikasi_data_catatan: '', verifikasi_berkas_status: '', verifikasi_berkas_catatan: '',
 });
@@ -239,6 +243,7 @@ const missingFields = computed(() => {
     if (!identity.pemda_provinsi) missing.push('Provinsi');
     if (identity.pemda_tipe && identity.pemda_tipe !== 'Pemerintah Provinsi' && !identity.pemda_kabkota) missing.push('Kabupaten/Kota');
   }
+  if (identity.instansi === 'Pemerintah Pusat' && !identity.nama_instansi) missing.push('Nama Instansi');
   return missing;
 });
 const profileComplete = computed(() => missingFields.value.length === 0);
@@ -276,6 +281,7 @@ async function loadProfile() {
     identity.hp = data.hp || '';
     identity.nipnrp = data.nipnrp || '';
     identity.instansi = data.instansi || '';
+    identity.nama_instansi = data.nama_instansi || '';
     identity.jabatan = data.jabatan || '';
     identity.unit_kerja = data.unit_kerja || '';
     identity.pangkat = data.pangkat || '';

@@ -7,7 +7,6 @@
         </div>
         <h1 class="text-4xl font-bold mb-1 tracking-wide">ADHIRA</h1>
         <p class="text-blue-200 text-base mb-3">Aplikasi Digital Penghargaan Dharma Persandian</p>
-        <p class="text-blue-200/70 text-sm">Sistem Pengarsipan Dokumen Penghargaan Elektronik</p>
       </div>
     </div>
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6">
@@ -30,8 +29,8 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <div class="relative">
-              <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              <input v-model="form.password" type="password" required class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Password" />
+              <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              <PasswordInput v-model="form.password" required placeholder="Password" class="pl-10" focus-class="focus:ring-blue-500 focus:border-blue-500" />
             </div>
           </div>
           <p v-if="error" class="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg flex items-center gap-2">
@@ -42,7 +41,7 @@
             {{ loading ? 'Memproses...' : 'Masuk' }}
           </button>
           <p class="text-center text-xs text-gray-500">
-            <router-link to="/register-verifikator" class="text-blue-600 hover:underline font-medium">Daftar sebagai Perwakilan Instansi (Dewan Penghargaan)</router-link>
+            <router-link to="/register-verifikator" class="text-blue-600 hover:underline font-medium">Daftar sebagai Perwakilan Instansi</router-link>
           </p>
       </form>
       </div>
@@ -54,6 +53,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
+import PasswordInput from '../../components/shared/PasswordInput.vue';
 const router = useRouter();
 const authStore = useAuthStore();
 const form = ref({ username: '', password: '' });

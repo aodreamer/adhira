@@ -36,7 +36,19 @@ function createChart() {
       },
       scales: {
         y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } }, grid: { color: '#f3f4f6' }, title: { display: true, text: props.yLabel } },
-        x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+        x: {
+          ticks: {
+            font: { size: 10 },
+            maxRotation: 45,
+            minRotation: 0,
+            autoSkip: true,
+            callback(value) {
+              const label = this.getLabelForValue(value);
+              return label.length > 14 ? label.slice(0, 13) + '…' : label;
+            },
+          },
+          grid: { display: false },
+        },
       },
     },
   });

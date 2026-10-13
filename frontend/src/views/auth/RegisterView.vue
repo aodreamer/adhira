@@ -25,16 +25,45 @@
                 <option v-for="opt in INSTANSI_OPTIONS" :key="opt" :value="opt">{{ opt }}</option>
               </select>
             </div>
+            <div v-if="form.instansi === 'Pemerintah Pusat'">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Nama Instansi <span class="text-red-500">*</span></label>
+              <input v-model="form.nama_instansi" required placeholder="mis. Kementerian Komunikasi dan Digital" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" />
+            </div>
+            <template v-if="form.instansi === 'Pemerintah Daerah'">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Jenis Pemerintah Daerah <span class="text-red-500">*</span></label>
+                <select v-model="form.pemda_tipe" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
+                  <option value="" disabled>Pilih jenis</option>
+                  <option value="Pemerintah Provinsi">Pemerintah Provinsi (Pemprov)</option>
+                  <option value="Pemerintah Kabupaten">Pemerintah Kabupaten (Pemkab)</option>
+                  <option value="Pemerintah Kota">Pemerintah Kota (Pemkot)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Provinsi <span class="text-red-500">*</span></label>
+                <select v-model="form.pemda_provinsi" required :disabled="!form.pemda_tipe" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="" disabled>{{ form.pemda_tipe ? 'Pilih provinsi' : 'Pilih jenis dahulu' }}</option>
+                  <option v-for="p in PROVINCES" :key="p.id" :value="p.name">{{ p.name }}</option>
+                </select>
+              </div>
+              <div v-if="form.pemda_tipe === 'Pemerintah Kabupaten' || form.pemda_tipe === 'Pemerintah Kota'">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.pemda_tipe === 'Pemerintah Kota' ? 'Kota' : 'Kabupaten' }} <span class="text-red-500">*</span></label>
+                <select v-model="form.pemda_kabkota" required :disabled="!form.pemda_provinsi" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="" disabled>{{ form.pemda_provinsi ? 'Pilih ' + (form.pemda_tipe === 'Pemerintah Kota' ? 'kota' : 'kabupaten') : 'Pilih provinsi dahulu' }}</option>
+                  <option v-for="r in filteredRegencies" :key="r.id" :value="r.name">{{ r.name }}</option>
+                </select>
+              </div>
+            </template>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">NIP/NRP <span class="text-red-500">*</span></label><input v-model="form.nipnrp" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">Username <span class="text-red-500">*</span></label><input v-model="form.username" required minlength="3" maxlength="50" pattern="[a-zA-Z0-9._-]+" title="Huruf, angka, titik, garis bawah, atau strip" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Password <span class="text-red-500">*</span></label>
-              <input v-model="form.password" type="password" required minlength="8" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" />
+              <PasswordInput v-model="form.password" required minlength="8" focus-class="focus:ring-emerald-100 focus:border-emerald-500" />
               <p class="text-[11px] text-gray-400 mt-1">Minimal 8 karakter, mengandung huruf dan angka</p>
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">Konfirmasi Password <span class="text-red-500">*</span></label>
-              <input v-model="form.confirmPassword" type="password" required minlength="8" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" />
+              <PasswordInput v-model="form.confirmPassword" required minlength="8" focus-class="focus:ring-emerald-100 focus:border-emerald-500" />
               <p v-if="form.confirmPassword && form.confirmPassword !== form.password" class="text-[11px] text-red-500 mt-1">Password tidak sama</p>
             </div>
             <div><label class="block text-xs font-medium text-gray-600 mb-1">Email <span class="text-red-500">*</span></label><input v-model="form.email" type="email" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none" /></div>
@@ -45,6 +74,9 @@
               <label class="block text-xs font-medium text-gray-600 mb-1">Pangkat/Golongan <span class="text-red-500">*</span></label>
               <select v-model="form.pangkat" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none bg-white">
                 <option value="" disabled>Pilih pangkat/golongan</option>
+                <optgroup label="PNS / Golongan">
+                  <option v-for="opt in PANGKAT_PNS" :key="'pns-' + opt" :value="opt">{{ opt }}</option>
+                </optgroup>
                 <optgroup label="TNI Angkatan Darat">
                   <option v-for="opt in PANGKAT_TNI_AD" :key="'ad-' + opt" :value="opt">{{ opt }}</option>
                 </optgroup>
@@ -56,9 +88,6 @@
                 </optgroup>
                 <optgroup label="Polri">
                   <option v-for="opt in PANGKAT_POLRI" :key="'polri-' + opt" :value="opt">{{ opt }}</option>
-                </optgroup>
-                <optgroup label="PNS / Golongan">
-                  <option v-for="opt in PANGKAT_PNS" :key="'pns-' + opt" :value="opt">{{ opt }}</option>
                 </optgroup>
               </select>
             </div>
@@ -83,17 +112,38 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import api from '../../api/client';
+import PasswordInput from '../../components/shared/PasswordInput.vue';
 import {
   INSTANSI_OPTIONS, PANGKAT_TNI_AD, PANGKAT_TNI_AU, PANGKAT_TNI_AL, PANGKAT_POLRI, PANGKAT_PNS,
 } from '../../constants/rank-data';
+import { PROVINCES, REGENCIES } from '../../constants/wilayah';
 
 // NIP/NRP satu field saja (tidak dibedakan per instansi -- bisa saja ASN
 // bertugas di lingkungan Polri/TNI atau sebaliknya). Golongan/pangkat juga
 // sengaja ditampilkan semua (tidak difilter per instansi).
-const form = ref({ nama: '', nipnrp: '', username: '', password: '', confirmPassword: '', email: '', hp: '', instansi: '', jabatan: '', unit_kerja: '', pangkat: '' });
+const form = ref({
+  nama: '', nipnrp: '', username: '', password: '', confirmPassword: '', email: '', hp: '', instansi: '', nama_instansi: '', jabatan: '', unit_kerja: '', pangkat: '',
+  pemda_tipe: '', pemda_provinsi: '', pemda_kabkota: '',
+});
 const error = ref(''); const success = ref(''); const loading = ref(false);
+
+const filteredRegencies = computed(() => {
+  const type = form.value.pemda_tipe === 'Pemerintah Kota' ? 'Kota' : 'Kabupaten';
+  return REGENCIES.filter((r) => r.provinceName === form.value.pemda_provinsi && r.type === type);
+});
+
+watch(() => form.value.instansi, () => {
+  if (form.value.instansi !== 'Pemerintah Daerah') {
+    form.value.pemda_tipe = ''; form.value.pemda_provinsi = ''; form.value.pemda_kabkota = '';
+  }
+  if (form.value.instansi !== 'Pemerintah Pusat') {
+    form.value.nama_instansi = '';
+  }
+});
+watch(() => form.value.pemda_tipe, () => { form.value.pemda_kabkota = ''; });
+watch(() => form.value.pemda_provinsi, () => { form.value.pemda_kabkota = ''; });
 
 async function handleRegister() {
   error.value = ''; success.value = '';

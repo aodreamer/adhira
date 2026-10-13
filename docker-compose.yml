@@ -5,7 +5,7 @@ services:
     build: ./backend
     container_name: adhira_backend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/src:/app/src
@@ -19,6 +19,12 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
       - UPLOAD_PATH=/app/uploads
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
     depends_on:
       db:
         condition: service_healthy
@@ -27,7 +33,7 @@ services:
     build: ./frontend
     container_name: adhira_frontend
     ports:
-      - "8080:80"
+      - "8181:80"
     depends_on:
       - backend
 

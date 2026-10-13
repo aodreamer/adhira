@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* PasswordInput.vue renders its own eye icon to toggle visibility. Some
+   browsers (Edge, and Chromium-based browsers with password manager
+   features) also inject a native "reveal password" eye icon in the same
+   right-edge spot, which visually doubles up with the custom one. Hide the
+   native icons so only the custom toggle shows. */
+.password-input-no-native-toggle::-ms-reveal,
+.password-input-no-native-toggle::-ms-clear {
+  display: none;
+}
+.password-input-no-native-toggle::-webkit-textfield-decoration-container {
+  visibility: hidden;
+}
+
+/* Responsive data table: collapses to a stacked card per row below `sm`
+   instead of forcing horizontal scroll on a hardcoded min-width table.
+   Each <td> must carry a `data-label` attribute (the column header text) so
+   its ::before pseudo-element can render a label in the card layout. */
+@layer components {
+  .responsive-table {
+    @apply w-full;
+  }
+
+  @media (max-width: 639px) {
+    .responsive-table thead {
+      @apply hidden;
+    }
+    .responsive-table tbody tr {
+      @apply block border border-gray-100 rounded-xl mb-3 p-3 shadow-sm;
+    }
+    .responsive-table tbody tr[data-empty-row] {
+      @apply border-none shadow-none p-0 mb-0;
+    }
+    .responsive-table tbody td {
+      @apply flex items-start justify-between gap-3 whitespace-normal text-right border-none p-1.5;
+    }
+    .responsive-table tbody td[data-label]::before {
+      content: attr(data-label);
+      @apply text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider shrink-0;
+    }
+    .responsive-table tbody td:not([data-label]) {
+      @apply justify-center text-center;
+    }
+  }
+}

@@ -19,6 +19,7 @@ const {
 const verifikatorRouter = require("./verifikator.routes");
 const verifikatorImportRouter = require("./verifikator-import.routes");
 const verifikatorRegistrationRouter = require("./verifikator-registration.routes");
+const requireApprovedVerifikator = require("../middleware/require-approved-verifikator");
 const adminVerifikatorRegistrationController = require("../controllers/admin-verifikator-registration.controller");
 const adminVerifikatorCodeController = require("../controllers/admin-verifikator-code.controller");
 
@@ -53,8 +54,8 @@ router.use("/distribusi", authenticate, authorize("Admin"), distribusiRouter);
 
 router.use("/user/self", authenticate, require("./user-self.routes"));
 router.use("/verifikator/registration", authenticate, authorize("Verifikator"), verifikatorRegistrationRouter);
-router.use("/verifikator/import", authenticate, authorize("Verifikator"), verifikatorImportRouter);
-router.use("/verifikator", authenticate, authorize("Verifikator"), verifikatorRouter);
+router.use("/verifikator/import", authenticate, authorize("Verifikator"), requireApprovedVerifikator, verifikatorImportRouter);
+router.use("/verifikator", authenticate, authorize("Verifikator"), requireApprovedVerifikator, verifikatorRouter);
 
 router.get("/admin/verifikator-registrations", authenticate, authorize("Admin"), adminVerifikatorRegistrationController.list);
 router.get("/admin/verifikator-registrations/:id/download/:which", authenticate, authorize("Admin"), adminVerifikatorRegistrationController.download);

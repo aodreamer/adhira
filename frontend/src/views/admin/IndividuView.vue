@@ -37,72 +37,48 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-4 border-b border-gray-100">
+        <TableSearchBox v-model="table.search" />
+      </div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[2000px]">
+        <table class="responsive-table">
           <thead><tr class="bg-gray-50 text-left">
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Nama / NIP</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Instansi / Jabatan</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Jenis</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Verif. Data</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Verif. Berkas</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Tgl</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">KEPKA</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">KTP</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">DRH</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Angkat</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Kep-Jab</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Surat Usulan</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">SK CPNS/PNS</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Piagam</th>
-            <th class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">Aksi</th>
+            <th v-for="col in columns" :key="col.key" class="p-2.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap select-none" :class="[col.sortable && 'cursor-pointer hover:text-gray-600', col.headerClass]" @click="col.sortable && table.toggleSort(col.key)">
+              {{ col.label }}
+              <span v-if="col.sortable && table.sortKey === col.key">{{ table.sortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
           </tr></thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-if="loading"><td :colspan="15" class="p-12 text-center text-gray-400"><div class="animate-pulse">Memuat data...</div></td></tr>
-            <tr v-else-if="data.length === 0"><td :colspan="15" class="p-12 text-center text-gray-400">Belum ada data</td></tr>
-            <template v-for="row in data" :key="row.id">
-            <tr class="hover:bg-gray-50 transition text-xs">
-              <td class="p-2.5 whitespace-nowrap"><div class="font-medium text-gray-800">{{ row.nama }}</div><div class="text-gray-400 font-mono text-[10px]">{{ row.nipnrp }}</div></td>
-              <td class="p-2.5 whitespace-nowrap"><div class="text-gray-700">{{ row.instansi || '-' }}</div><div class="text-gray-400 text-[10px]">{{ certPreview(row) || '-' }} / {{ row.pangkat || '-' }}</div></td>
-              <td class="p-2.5 whitespace-nowrap"><span class="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 font-medium">{{ row.jenis_penghargaan || '-' }}</span></td>
-              <td class="p-2.5 text-center"><StatusBadge :status="row.verifikasi_data_status" /></td>
-              <td class="p-2.5 text-center"><StatusBadge :status="row.verifikasi_berkas_status" /></td>
-              <td class="p-2.5 whitespace-nowrap text-gray-600">{{ row.tgl_penghargaan || '-' }}</td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_kepka" @click="openPreview('/individu/' + row.id + '/download/file_kepka', row.file_kepka)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_ktp" @click="openPreview('/individu/' + row.id + '/download/file_ktp', row.file_ktp)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_drh" @click="openPreview('/individu/' + row.id + '/download/file_drh', row.file_drh)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_pengangkatan" @click="openPreview('/individu/' + row.id + '/download/file_pengangkatan', row.file_pengangkatan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_keputusan_jabatan" @click="openPreview('/individu/' + row.id + '/download/file_keputusan_jabatan', row.file_keputusan_jabatan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_surat_usulan" @click="openPreview('/individu/' + row.id + '/download/file_surat_usulan', row.file_surat_usulan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_sk_cpns_pns" @click="openPreview('/individu/' + row.id + '/download/file_sk_cpns_pns', row.file_sk_cpns_pns)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 text-center"><button type="button" v-if="row.file_piagam_penghargaan" @click="openPreview('/individu/' + row.id + '/download/file_piagam_penghargaan', row.file_piagam_penghargaan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
-              <td class="p-2.5 whitespace-nowrap text-right">
+            <tr v-if="loading" data-empty-row><td :colspan="columns.length" class="p-12 text-center text-gray-400"><div class="animate-pulse">Memuat data...</div></td></tr>
+            <tr v-else-if="table.pageRows.length === 0" data-empty-row><td :colspan="columns.length" class="p-12 text-center text-gray-400">Belum ada data</td></tr>
+            <tr v-for="row in table.pageRows" :key="row.id" class="hover:bg-gray-50 transition text-xs">
+              <td data-label="Nama / NIP" class="p-2.5 whitespace-nowrap"><div class="font-medium text-gray-800">{{ row.nama }}</div><div class="text-gray-400 font-mono text-[10px]">{{ row.nipnrp }}</div></td>
+              <td data-label="Instansi / Jabatan" class="p-2.5 whitespace-nowrap"><div class="text-gray-700">{{ row.instansi || '-' }}</div><div class="text-gray-400 text-[10px]">{{ certPreview(row) || '-' }} / {{ row.pangkat || '-' }}</div></td>
+              <td data-label="Jenis" class="p-2.5 whitespace-nowrap"><span class="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 font-medium">{{ row.jenis_penghargaan || '-' }}</span></td>
+              <td data-label="Verif. Data" class="p-2.5 text-center"><StatusBadge :status="row.verifikasi_data_status" /></td>
+              <td data-label="Verif. Berkas" class="p-2.5 text-center"><StatusBadge :status="row.verifikasi_berkas_status" /></td>
+              <td data-label="Tgl" class="p-2.5 whitespace-nowrap text-gray-600">{{ row.tgl_penghargaan || '-' }}</td>
+              <td data-label="KEPKA" class="p-2.5 text-center"><button type="button" v-if="row.file_kepka" @click="openPreview('/individu/' + row.id + '/download/file_kepka', row.file_kepka)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="KTP" class="p-2.5 text-center"><button type="button" v-if="row.file_ktp" @click="openPreview('/individu/' + row.id + '/download/file_ktp', row.file_ktp)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="DRH" class="p-2.5 text-center"><button type="button" v-if="row.file_drh" @click="openPreview('/individu/' + row.id + '/download/file_drh', row.file_drh)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="Angkat" class="p-2.5 text-center"><button type="button" v-if="row.file_pengangkatan" @click="openPreview('/individu/' + row.id + '/download/file_pengangkatan', row.file_pengangkatan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="Kep-Jab" class="p-2.5 text-center"><button type="button" v-if="row.file_keputusan_jabatan" @click="openPreview('/individu/' + row.id + '/download/file_keputusan_jabatan', row.file_keputusan_jabatan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="Surat Usulan" class="p-2.5 text-center"><button type="button" v-if="row.file_surat_usulan" @click="openPreview('/individu/' + row.id + '/download/file_surat_usulan', row.file_surat_usulan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="SK CPNS/PNS" class="p-2.5 text-center"><button type="button" v-if="row.file_sk_cpns_pns" @click="openPreview('/individu/' + row.id + '/download/file_sk_cpns_pns', row.file_sk_cpns_pns)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="Piagam" class="p-2.5 text-center"><button type="button" v-if="row.file_piagam_penghargaan" @click="openPreview('/individu/' + row.id + '/download/file_piagam_penghargaan', row.file_piagam_penghargaan)" class="text-blue-600 hover:text-blue-800 text-[10px] font-medium">Lihat</button><span v-else class="text-gray-300 text-xs">-</span></td>
+              <td data-label="Aksi" class="p-2.5 whitespace-nowrap text-right">
                 <button @click="toggleVerify(row)" class="px-2 py-1 text-[11px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition mr-0.5">Verifikasi</button>
                 <button @click="openEdit(row)" class="px-2 py-1 text-[11px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition mr-0.5">Edit</button>
                 <button @click="confirmDelete(row)" class="px-2 py-1 text-[11px] font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button>
               </td>
             </tr>
-            <tr v-if="verifyingId === row.id" class="bg-indigo-50/40 text-xs">
-              <td colspan="15" class="p-4">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div>
-                    <div class="flex items-center justify-between mb-2"><span class="font-semibold text-gray-700">Verifikasi Data Pribadi</span><StatusBadge :status="row.verifikasi_data_status" /></div>
-                    <p v-if="row.verifikasi_data_catatan" class="text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-2 mb-2">{{ row.verifikasi_data_catatan }}</p>
-                    <VerifikasiPanel :saving="verifySaving" @approve="submitVerify(row, 'data', 'Disetujui')" @reject="(catatan) => submitVerify(row, 'data', 'Ditolak', catatan)" />
-                  </div>
-                  <div>
-                    <div class="flex items-center justify-between mb-2"><span class="font-semibold text-gray-700">Verifikasi Berkas</span><StatusBadge :status="row.verifikasi_berkas_status" /></div>
-                    <p v-if="row.verifikasi_berkas_catatan" class="text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-2 mb-2">{{ row.verifikasi_berkas_catatan }}</p>
-                    <VerifikasiPanel :saving="verifySaving" @approve="submitVerify(row, 'berkas', 'Disetujui')" @reject="(catatan) => submitVerify(row, 'berkas', 'Ditolak', catatan)" />
-                  </div>
-                </div>
-                <p v-if="verifyError" class="text-[11px] text-red-600 mt-2">{{ verifyError }}</p>
-              </td>
-            </tr>
-            </template>
           </tbody>
         </table>
       </div>
+      <TablePagination :page="table.page" @update:page="table.goToPage" v-model:page-size="table.pageSize" :total-pages="table.totalPages" :total-items="table.totalItems" />
     </div>
+
+    <Teleport to="body"><div v-if="verifyRow" class="fixed inset-0 z-50 flex items-center justify-center p-4"><div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="verifyRow=null"></div><div class="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"><div class="p-6"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold text-gray-800">Verifikasi Data</h3><button @click="verifyRow=null" class="text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-4"><div><div class="flex items-center justify-between mb-2"><span class="font-semibold text-gray-700">Verifikasi Data Pribadi</span><StatusBadge :status="verifyRow.verifikasi_data_status" /></div><p v-if="verifyRow.verifikasi_data_catatan" class="text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-2 mb-2">{{ verifyRow.verifikasi_data_catatan }}</p><VerifikasiPanel :saving="verifySaving" @approve="submitVerify(verifyRow, 'data', 'Disetujui')" @reject="(catatan) => submitVerify(verifyRow, 'data', 'Ditolak', catatan)" /></div><div><div class="flex items-center justify-between mb-2"><span class="font-semibold text-gray-700">Verifikasi Berkas</span><StatusBadge :status="verifyRow.verifikasi_berkas_status" /></div><p v-if="verifyRow.verifikasi_berkas_catatan" class="text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-2 mb-2">{{ verifyRow.verifikasi_berkas_catatan }}</p><VerifikasiPanel :saving="verifySaving" @approve="submitVerify(verifyRow, 'berkas', 'Disetujui')" @reject="(catatan) => submitVerify(verifyRow, 'berkas', 'Ditolak', catatan)" /></div></div><p v-if="verifyError" class="text-[11px] text-red-600 mt-2">{{ verifyError }}</p></div></div></div></Teleport>
 
     <Teleport to="body"><div v-if="showAdd" class="fixed inset-0 z-50 flex items-center justify-center p-4"><div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showAdd=false"></div><div class="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"><div class="p-6"><div class="flex items-center justify-between mb-5"><h3 class="text-lg font-bold text-gray-800">Tambah Data Individu</h3><button @click="showAdd=false" class="text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div><form @submit.prevent="handleAdd" class="space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama <span class="text-red-500">*</span></label><input v-model="form.nama" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-xs font-medium text-gray-600 mb-1">NIP/NRP <span class="text-red-500">*</span></label><input v-model="form.nipnrp" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Instansi</label><input v-model="form.instansi" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Jabatan</label><input v-model="form.jabatan" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Unit Kerja</label><input v-model="form.unit_kerja" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div class="sm:col-span-2"><p class="text-[11px] font-medium text-gray-500 mb-1.5">Pratinjau baris sertifikat</p><div v-if="certPreview(form)" class="inline-block bg-yellow-200 px-3 py-2 rounded-lg border border-yellow-300 shadow-sm"><span class="text-red-600 font-bold text-sm">{{ certPreview(form) }}</span></div><p v-else class="text-[11px] text-gray-400 italic">Isi Jabatan dan Unit Kerja untuk melihat pratinjau</p></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Pangkat</label><input v-model="form.pangkat" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Penghargaan</label><input v-model="form.jenis_penghargaan" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tgl Penghargaan <span class="text-red-500">*</span></label><input v-model="form.tgl_penghargaan" type="date" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div></div><div class="border-t border-gray-100 pt-4"><h4 class="text-sm font-semibold text-gray-700 mb-3">Riwayat Kepegawaian</h4><div class="grid grid-cols-2 sm:grid-cols-4 gap-3"><div><label class="block text-[11px] font-medium text-gray-500 mb-1">TMT CPNS/PNS</label><input v-model="form.tgl_tmt_cpns_pns" type="date" class="w-full border border-gray-300 rounded-xl px-2.5 py-2 text-xs focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"/></div><div><label class="block text-[11px] font-medium text-gray-500 mb-1">Masa Kerja Kumulatif (th/bln)</label><div class="flex gap-1.5"><input v-model.number="form.masa_kerja_kumulatif_tahun" type="number" min="0" class="w-full border border-gray-300 rounded-xl px-2 py-2 text-xs"/><input v-model.number="form.masa_kerja_kumulatif_bulan" type="number" min="0" max="11" class="w-full border border-gray-300 rounded-xl px-2 py-2 text-xs"/></div></div><div><label class="block text-[11px] font-medium text-gray-500 mb-1">Masa Kerja Pengurangan (th/bln)</label><div class="flex gap-1.5"><input v-model.number="form.masa_kerja_pengurangan_tahun" type="number" min="0" class="w-full border border-gray-300 rounded-xl px-2 py-2 text-xs"/><input v-model.number="form.masa_kerja_pengurangan_bulan" type="number" min="0" max="11" class="w-full border border-gray-300 rounded-xl px-2 py-2 text-xs"/></div></div><div><label class="block text-[11px] font-medium text-gray-500 mb-1">Masa Kerja Persandian (otomatis)</label><div class="w-full border border-gray-200 bg-gray-50 rounded-xl px-2.5 py-2 text-xs text-gray-600">{{ masaKerja(form).tahun }} th {{ masaKerja(form).bulan }} bln</div></div></div></div><div class="border-t border-gray-100 pt-4"><h4 class="text-sm font-semibold text-gray-700 mb-3">Upload Dokumen</h4><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"><div v-for="doc in ALL_DOCS" :key="doc.col"><label class="block text-[11px] font-medium text-gray-500 mb-1 truncate" :title="doc.label">{{ doc.label }}<span v-if="REQUIRED_COLS.has(doc.col)" class="text-red-500"> *</span></label><input type="file" :ref="el => addRefs[doc.col] = el" class="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 file:border-0 hover:file:bg-blue-100"/><input v-if="doc.titleCol" v-model="form[doc.titleCol]" type="text" placeholder="Judul berkas" class="w-full mt-1 border border-gray-200 rounded-lg px-2 py-1 text-[10px]"/></div></div></div><p v-if="formError" class="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{{ formError }}</p><div class="flex justify-end gap-3 pt-3"><button type="button" @click="showAdd=false" class="px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition">Batal</button><button type="submit" :disabled="saving" class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50">{{ saving ? 'Menyimpan...' : 'Simpan' }}</button></div></form></div></div></div></Teleport>
 
@@ -124,8 +100,35 @@ import { useFilePreview } from '../../composables/useFilePreview';
 import { ALL_DOCS, REQUIRED_DOCS } from '../../constants/documents';
 import { computeMasaKerjaPersandian } from '../../constants/masa-kerja';
 import VerifikasiPanel from '../../components/verifikator/VerifikasiPanel.vue';
+import TableSearchBox from '../../components/shared/TableSearchBox.vue';
+import TablePagination from '../../components/shared/TablePagination.vue';
+import { useTable } from '../../composables/useTable';
 
 const { previewState, openPreview, closePreview } = useFilePreview();
+
+// Semantic order for status sorting, so "Verif. Data"/"Verif. Berkas" sort by
+// review progress rather than the badge's rendered text/markup (the bug in
+// the old jQuery DataTables integration, which sorted on raw DOM content).
+const STATUS_ORDER = { Menunggu: 0, Pending: 0, Ditolak: 1, Disetujui: 2 };
+const statusSortValue = (status) => STATUS_ORDER[status] ?? 0;
+
+const columns = [
+  { key: 'nama', label: 'Nama / NIP', sortable: true, sortValue: (r) => r.nama || '' },
+  { key: 'instansi', label: 'Instansi / Jabatan', sortable: true, sortValue: (r) => r.instansi || '' },
+  { key: 'jenis_penghargaan', label: 'Jenis', sortable: true },
+  { key: 'verifikasi_data_status', label: 'Verif. Data', sortable: true, headerClass: 'text-center', sortValue: (r) => statusSortValue(r.verifikasi_data_status) },
+  { key: 'verifikasi_berkas_status', label: 'Verif. Berkas', sortable: true, headerClass: 'text-center', sortValue: (r) => statusSortValue(r.verifikasi_berkas_status) },
+  { key: 'tgl_penghargaan', label: 'Tgl', sortable: true },
+  { key: 'file_kepka', label: 'KEPKA', sortable: false, headerClass: 'text-center' },
+  { key: 'file_ktp', label: 'KTP', sortable: false, headerClass: 'text-center' },
+  { key: 'file_drh', label: 'DRH', sortable: false, headerClass: 'text-center' },
+  { key: 'file_pengangkatan', label: 'Angkat', sortable: false, headerClass: 'text-center' },
+  { key: 'file_keputusan_jabatan', label: 'Kep-Jab', sortable: false, headerClass: 'text-center' },
+  { key: 'file_surat_usulan', label: 'Surat Usulan', sortable: false, headerClass: 'text-center' },
+  { key: 'file_sk_cpns_pns', label: 'SK CPNS/PNS', sortable: false, headerClass: 'text-center' },
+  { key: 'file_piagam_penghargaan', label: 'Piagam', sortable: false, headerClass: 'text-center' },
+  { key: 'aksi', label: 'Aksi', sortable: false, headerClass: 'text-right' },
+];
 
 const data = ref([]);
 const filters = ref({ tahun: [], jenis: [], instansi: [] });
@@ -148,11 +151,13 @@ const form = reactive({...emptyForm});
 const editForm = reactive({id:null,...Object.fromEntries(fileColumns.map(k=>[k,''])),...emptyForm});
 function masaKerja(obj) { return computeMasaKerjaPersandian(obj); }
 
-const verifyingId = ref(null);
+const table = reactive(useTable(data, { columns }));
+const verifyRow = ref(null);
 const verifySaving = ref(false);
 const verifyError = ref('');
+
 function toggleVerify(row) {
-  verifyingId.value = verifyingId.value === row.id ? null : row.id;
+  verifyRow.value = row;
   verifyError.value = '';
 }
 async function submitVerify(row, kind, status, catatan) {

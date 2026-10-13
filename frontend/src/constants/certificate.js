@@ -31,6 +31,7 @@ function pemdaInstansiFull({ pemda_tipe, pemda_provinsi, pemda_kabkota }) {
 function instansiFull(profile) {
   if (!profile.instansi) return '';
   if (profile.instansi === 'Pemerintah Daerah') return pemdaInstansiFull(profile);
+  if (profile.instansi === 'Pemerintah Pusat' && (profile.nama_instansi || '').trim()) return profile.nama_instansi.trim();
   return INSTANSI_FULL_NAME[profile.instansi] || profile.instansi;
 }
 

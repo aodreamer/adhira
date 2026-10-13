@@ -3,7 +3,7 @@
     <div class="mb-6 flex items-center justify-between">
       <div>
         <h2 class="text-xl font-bold text-gray-800">Kode Pendaftaran Verifikator</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Kode ini dibagikan lewat surat resmi ke instansi yang berhak mendaftarkan perwakilan (Dewan Penghargaan)</p>
+        <p class="text-sm text-gray-500 mt-0.5">Kode ini dibagikan lewat surat resmi ke instansi yang berhak mendaftarkan perwakilan (Perwakilan Instansi)</p>
       </div>
       <button @click="showForm = true" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition">+ Buat Kode</button>
     </div>
@@ -32,30 +32,31 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-4 border-b border-gray-100">
+        <TableSearchBox v-model="table.search" />
+      </div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[700px]">
+        <table class="responsive-table">
           <thead><tr class="bg-gray-50 text-left">
-            <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Kode</th>
-            <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Keterangan</th>
-            <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Kadaluarsa</th>
-            <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Dipakai</th>
-            <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Status</th>
-            <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">Aksi</th>
+            <th v-for="col in columns" :key="col.key" class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap select-none" :class="[col.sortable && 'cursor-pointer hover:text-gray-600', col.headerClass]" @click="col.sortable && table.toggleSort(col.key)">
+              {{ col.label }}
+              <span v-if="col.sortable && table.sortKey === col.key">{{ table.sortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
           </tr></thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-if="loading"><td colspan="6" class="p-12 text-center text-gray-400"><div class="animate-pulse">Memuat data...</div></td></tr>
-            <tr v-else-if="rows.length === 0"><td colspan="6" class="p-12 text-center text-gray-400">Belum ada kode pendaftaran</td></tr>
-            <tr v-for="row in rows" :key="row.id" class="hover:bg-gray-50 transition text-xs">
-              <td class="p-3 font-mono font-semibold tracking-wider text-gray-800">{{ row.kode }}</td>
-              <td class="p-3 text-gray-600">{{ row.keterangan || '-' }}</td>
-              <td class="p-3 text-gray-600">{{ formatDate(row.expired_at) }}</td>
-              <td class="p-3 text-center text-gray-700">{{ row.usage_count }}</td>
-              <td class="p-3 text-center">
+            <tr v-if="loading" data-empty-row><td :colspan="columns.length" class="p-12 text-center text-gray-400"><div class="animate-pulse">Memuat data...</div></td></tr>
+            <tr v-else-if="table.pageRows.length === 0" data-empty-row><td :colspan="columns.length" class="p-12 text-center text-gray-400">Belum ada data</td></tr>
+            <tr v-for="row in table.pageRows" :key="row.id" class="hover:bg-gray-50 transition text-xs">
+              <td data-label="Kode" class="p-3 font-mono font-semibold tracking-wider text-gray-800">{{ row.kode }}</td>
+              <td data-label="Keterangan" class="p-3 text-gray-600">{{ row.keterangan || '-' }}</td>
+              <td data-label="Kadaluarsa" class="p-3 text-gray-600">{{ formatDate(row.expired_at) }}</td>
+              <td data-label="Dipakai" class="p-3 text-center text-gray-700">{{ row.usage_count }}</td>
+              <td data-label="Status" class="p-3 text-center">
                 <span v-if="isExpired(row)" class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">Kadaluarsa</span>
                 <span v-else-if="row.is_active" class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">Aktif</span>
                 <span v-else class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-600">Nonaktif</span>
               </td>
-              <td class="p-3 text-right">
+              <td data-label="Aksi" class="p-3 text-right">
                 <button v-if="!isExpired(row)" @click="toggleActive(row)" class="px-2 py-1 text-[11px] font-medium rounded-lg transition" :class="row.is_active ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'">
                   {{ row.is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                 </button>
@@ -64,13 +65,17 @@
           </tbody>
         </table>
       </div>
+      <TablePagination :page="table.page" @update:page="table.goToPage" v-model:page-size="table.pageSize" :total-pages="table.totalPages" :total-items="table.totalItems" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import api from '../../api/client';
+import TableSearchBox from '../../components/shared/TableSearchBox.vue';
+import TablePagination from '../../components/shared/TablePagination.vue';
+import { useTable } from '../../composables/useTable';
 
 const rows = ref([]);
 const loading = ref(true);
@@ -88,6 +93,24 @@ function formatDate(d) {
 function isExpired(row) {
   return new Date(row.expired_at) <= new Date();
 }
+
+// Status is a synthetic value derived from is_active/expired_at rather than a
+// stored field, so give it a semantic sort order (like IndividuView's
+// STATUS_ORDER for StatusBadge columns): Kadaluarsa < Nonaktif < Aktif.
+function statusSortValue(row) {
+  if (isExpired(row)) return 0;
+  return row.is_active ? 2 : 1;
+}
+
+const columns = [
+  { key: 'kode', label: 'Kode', sortable: true },
+  { key: 'keterangan', label: 'Keterangan', sortable: true },
+  { key: 'expired_at', label: 'Kadaluarsa', sortable: true, sortValue: (r) => new Date(r.expired_at).getTime() },
+  { key: 'usage_count', label: 'Dipakai', sortable: true, headerClass: 'text-center' },
+  { key: 'status', label: 'Status', sortable: true, headerClass: 'text-center', sortValue: statusSortValue },
+  { key: 'aksi', label: 'Aksi', sortable: false, headerClass: 'text-right' },
+];
+const table = reactive(useTable(rows, { columns }));
 
 async function fetchData() {
   loading.value = true;

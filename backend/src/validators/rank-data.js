@@ -25,18 +25,18 @@ const PANGKAT_TNI_AL = [
 ];
 
 const PANGKAT_POLRI = [
-  'Bhayangkara Kepala (Bharaka)', 'Ajun Brigadir Polisi Dua (Abripda)', 'Ajun Brigadir Polisi Satu (Abriptu)', 'Ajun Brigadir Polisi (Abrip)',
-  'Brigadir Polisi Dua (Bripda)', 'Brigadir Polisi Satu (Briptu)', 'Brigadir Polisi (Brigpol)', 'Brigadir Polisi Kepala (Bripka)',
-  'Ajun Inspektur Polisi Dua (Aipda)', 'Ajun Inspektur Polisi Satu (Aiptu)', 'Inspektur Polisi Dua (Ipda)', 'Inspektur Polisi Satu (Iptu)',
-  'Ajun Komisaris Polisi (AKP)', 'Komisaris Polisi (Kompol)', 'Ajun Komisaris Besar Polisi (AKBP)', 'Komisaris Besar Polisi (Kombes Pol)',
-  'Brigadir Jenderal Polisi (Brigjen Pol)', 'Inspektur Jenderal Polisi (Irjen Pol)', 'Komisaris Jenderal Polisi (Komjen Pol)', 'Jenderal Polisi',
+  'Jenderal Polisi', 'Komisaris Jenderal Polisi (Komjen Pol)', 'Inspektur Jenderal Polisi (Irjen Pol)', 'Brigadir Jenderal Polisi (Brigjen Pol)',
+  'Komisaris Besar Polisi (Kombes Pol)', 'Ajun Komisaris Besar Polisi (AKBP)', 'Komisaris Polisi (Kompol)', 'Ajun Komisaris Polisi (AKP)',
+  'Inspektur Polisi Satu (Iptu)', 'Inspektur Polisi Dua (Ipda)', 'Ajun Inspektur Polisi Satu (Aiptu)', 'Ajun Inspektur Polisi Dua (Aipda)',
+  'Brigadir Polisi Kepala (Bripka)', 'Brigadir Polisi (Brigpol)', 'Brigadir Polisi Satu (Briptu)', 'Brigadir Polisi Dua (Bripda)',
+  'Ajun Brigadir Polisi (Abrip)', 'Ajun Brigadir Polisi Satu (Abriptu)', 'Ajun Brigadir Polisi Dua (Abripda)', 'Bhayangkara Kepala (Bharaka)',
 ];
 
 const PANGKAT_PNS = [
-  'Juru Muda (I/a)', 'Juru Muda Tingkat I (I/b)', 'Juru (I/c)', 'Juru Tingkat I (I/d)',
-  'Pengatur Muda (II/a)', 'Pengatur Muda Tingkat I (II/b)', 'Pengatur (II/c)', 'Pengatur Tingkat I (II/d)',
-  'Penata Muda (III/a)', 'Penata Muda Tingkat I (III/b)', 'Penata (III/c)', 'Penata Tingkat I (III/d)',
-  'Pembina (IV/a)', 'Pembina Tingkat I (IV/b)', 'Pembina Utama Muda (IV/c)', 'Pembina Utama Madya (IV/d)', 'Pembina Utama (IV/e)',
+  'Pembina Utama (IV/e)', 'Pembina Utama Madya (IV/d)', 'Pembina Utama Muda (IV/c)', 'Pembina Tingkat I (IV/b)', 'Pembina (IV/a)',
+  'Penata Tingkat I (III/d)', 'Penata (III/c)', 'Penata Muda Tingkat I (III/b)', 'Penata Muda (III/a)',
+  'Pengatur Tingkat I (II/d)', 'Pengatur (II/c)', 'Pengatur Muda Tingkat I (II/b)', 'Pengatur Muda (II/a)',
+  'Juru Tingkat I (I/d)', 'Juru (I/c)', 'Juru Muda Tingkat I (I/b)', 'Juru Muda (I/a)',
 ];
 
 const PANGKAT_OPTIONS = [...new Set([

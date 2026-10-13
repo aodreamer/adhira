@@ -33,7 +33,15 @@ const COLUMNS = [
 ];
 
 function toIntOrNull(v) {
-  return v === '' || v === null || v === undefined ? null : Number(v);
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= -32768 && n <= 32767 ? n : null;
+}
+
+function toDateOrNull(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
 }
 
 function cellToString(value) {
@@ -69,12 +77,36 @@ function findHeaderRow(sheet) {
   return best;
 }
 
+function normalizeProvince(raw) {
+  const key = String(raw || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  const prov = PROVINCES.find((p) => p.name === key);
+  return prov ? prov.name : raw;
+}
+
+// User may type "Blora" (or "Kabupaten Blora"/"KOTA Blora") instead of the
+// canonical "KABUPATEN BLORA". Resolve bare names against the regency list,
+// preferring the entry that matches the row's pemda_tipe (Kabupaten vs Kota).
+function normalizeRegency(raw, pemdaTipe) {
+  if (!raw) return raw;
+  const key = String(raw).trim().replace(/\s+/g, ' ').toUpperCase();
+  const direct = REGENCIES.find((r) => r.name === key);
+  if (direct) return direct.name;
+  const bare = key.replace(/^(KABUPATEN|KOTA)\s+/, '');
+  if (bare.length < 3) return raw;
+  const candidates = REGENCIES.filter((r) => r.name.endsWith(bare));
+  if (candidates.length === 0) return raw;
+  const preferred = candidates.find((r) => 'Pemerintah ' + r.type === pemdaTipe);
+  return (preferred || candidates[0]).name;
+}
+
 function normalizePemdaTipe(raw) {
   const out = { ...raw };
   if (out.pemda_tipe) {
     const alias = PEMDA_TIPE_ALIASES[out.pemda_tipe.trim().toLowerCase()];
     if (alias) out.pemda_tipe = alias;
   }
+  out.pemda_provinsi = normalizeProvince(out.pemda_provinsi);
+  out.pemda_kabkota = normalizeRegency(out.pemda_kabkota, out.pemda_tipe);
   return out;
 }
 
@@ -115,14 +147,29 @@ function rowSchema(instansi) {
     jenis_penghargaan: Joi.string().trim().min(2).max(255).required().messages({
       'any.required': 'Jenis penghargaan wajib diisi', 'string.empty': 'Jenis penghargaan wajib diisi',
     }),
-    tgl_tmt_cpns_pns: Joi.date().allow('', null).messages({ 'date.base': 'Format tanggal TMT CPNS/PNS tidak valid (gunakan YYYY-MM-DD)' }),
+    tgl_tmt_cpns_pns: Joi.date().min('1950-01-01').max('now').allow('', null).messages({
+      'date.base': 'Format tanggal TMT CPNS/PNS tidak valid (gunakan YYYY-MM-DD)',
+      'date.min': 'Tanggal TMT CPNS/PNS tidak masuk akal (terlalu lampau)',
+      'date.max': 'Tanggal TMT CPNS/PNS tidak boleh di masa depan',
+    }),
     masa_kerja_kumulatif_tahun: Joi.number().integer().min(0).allow('', null).messages({ 'number.base': 'Masa kerja kumulatif tahun harus angka' }),
     masa_kerja_kumulatif_bulan: Joi.number().integer().min(0).max(11).allow('', null).messages({ 'number.base': 'Masa kerja kumulatif bulan harus angka' }),
     masa_kerja_pengurangan_tahun: Joi.number().integer().min(0).allow('', null).messages({ 'number.base': 'Masa kerja pengurangan tahun harus angka' }),
     masa_kerja_pengurangan_bulan: Joi.number().integer().min(0).max(11).allow('', null).messages({ 'number.base': 'Masa kerja pengurangan bulan harus angka' }),
     pemda_tipe: pemdaField(PEMDA_TIPE_OPTIONS, 'Tipe pemda'),
     pemda_provinsi: pemdaField(PROVINCE_NAMES, 'Provinsi'),
-    pemda_kabkota: pemdaField(REGENCY_NAMES, 'Kabupaten/Kota'),
+    // Kabupaten/Kota tidak relevan untuk tipe "Pemerintah Provinsi" -- hanya
+    // wajib saat tipe pemda-nya Kabupaten/Kota (lihat pola sama di
+    // auth.validator.js pemdaFields() dan AccountSettingsView.vue).
+    pemda_kabkota: Joi.string().valid(...REGENCY_NAMES, '').messages({ 'any.only': 'Kabupaten/Kota tidak dikenali' })
+      .when('pemda_tipe', {
+        is: Joi.string().valid('Pemerintah Kabupaten', 'Pemerintah Kota').required(),
+        then: Joi.invalid('').required().messages({
+          'any.required': 'Kabupaten/Kota wajib diisi untuk instansi Pemerintah Daerah',
+          'any.invalid': 'Kabupaten/Kota wajib diisi untuk instansi Pemerintah Daerah',
+        }),
+        otherwise: Joi.allow(null).optional(),
+      }),
   });
 }
 
@@ -175,6 +222,13 @@ async function parseTemplateBuffer(buffer, instansi) {
       }
     }
 
+    // Error rows are still persisted (flagged row_status='Error'), so a bad
+    // value must never reach the DB as-is: `value` carries Joi-coerced
+    // leftovers like NaN for numeric cells and out-of-range years for dates,
+    // which Postgres rejects on the INSERT and would 500 the whole upload.
+    // Store null for those, same as if the cell had been left blank.
+    const hasDateError = errors.some((e) => e.field === 'tgl_tmt_cpns_pns');
+
     return {
       row_number: i + 1,
       nama: value.nama ?? raw.nama,
@@ -185,7 +239,7 @@ async function parseTemplateBuffer(buffer, instansi) {
       unit_kerja: value.unit_kerja || '',
       pangkat: value.pangkat ?? raw.pangkat,
       jenis_penghargaan: value.jenis_penghargaan ?? raw.jenis_penghargaan,
-      tgl_tmt_cpns_pns: value.tgl_tmt_cpns_pns ? new Date(value.tgl_tmt_cpns_pns).toISOString().split('T')[0] : null,
+      tgl_tmt_cpns_pns: hasDateError ? null : toDateOrNull(value.tgl_tmt_cpns_pns),
       masa_kerja_kumulatif_tahun: toIntOrNull(value.masa_kerja_kumulatif_tahun),
       masa_kerja_kumulatif_bulan: toIntOrNull(value.masa_kerja_kumulatif_bulan),
       masa_kerja_pengurangan_tahun: toIntOrNull(value.masa_kerja_pengurangan_tahun),

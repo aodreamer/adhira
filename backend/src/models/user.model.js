@@ -40,12 +40,13 @@ const UserModel = {
   // in a caller's BEGIN/COMMIT (e.g. bulk-import's confirmBatch).
   async create(data, db = pool) {
     const { rows } = await db.query(
-      `INSERT INTO mst_user (nama, email, hp, username, password, level, image, date_created, is_active, must_change_password, reg_status, reg_nipnrp, reg_pangkat, reg_jabatan, reg_unit_kerja, reg_code_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id_user, nama, email, hp, username, level, date_created, is_active, reg_status`,
+      `INSERT INTO mst_user (nama, email, hp, username, password, level, image, date_created, is_active, must_change_password, reg_status, reg_nipnrp, reg_pangkat, reg_jabatan, reg_unit_kerja, reg_code_id, reg_nama_instansi, reg_pemda_tipe, reg_pemda_provinsi, reg_pemda_kabkota)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id_user, nama, email, hp, username, level, date_created, is_active, reg_status`,
       [
         data.nama, data.email, data.hp, data.username, data.password, data.level || 'User', data.image || 'default.jpg',
         data.is_active ?? 1, data.must_change_password ?? 0, data.reg_status || null, data.reg_nipnrp || null, data.reg_pangkat || null,
         data.reg_jabatan || null, data.reg_unit_kerja || null, data.reg_code_id || null,
+        data.reg_nama_instansi || null, data.reg_pemda_tipe || null, data.reg_pemda_provinsi || null, data.reg_pemda_kabkota || null,
       ]
     );
     return rows[0];

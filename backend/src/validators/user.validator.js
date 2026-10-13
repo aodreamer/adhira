@@ -62,6 +62,16 @@ const selfProfileSchema = Joi.object({
   instansi: Joi.string().valid(...INSTANSI_OPTIONS).messages({
     'any.only': 'Instansi tidak valid',
   }),
+  nama_instansi: Joi.string().trim().min(2).max(255).messages({
+    'string.min': 'Nama instansi minimal 2 karakter',
+  }).when('instansi', {
+    is: Joi.string().valid('Pemerintah Pusat').required(),
+    then: Joi.invalid('').required().messages({
+      'any.required': 'Nama instansi wajib diisi',
+      'any.invalid': 'Nama instansi wajib diisi',
+    }),
+    otherwise: Joi.optional().allow('', null),
+  }),
   jabatan: Joi.string().trim().min(2).max(255).messages({
     'string.min': 'Jabatan minimal 2 karakter',
   }),
@@ -98,7 +108,10 @@ const selfProfileSchema = Joi.object({
       'any.invalid': 'Kabupaten/Kota wajib dipilih',
     }),
   }),
-  tgl_tmt_cpns_pns: Joi.date().allow(null, ''),
+  tgl_tmt_cpns_pns: Joi.date().min('1950-01-01').max('now').allow(null, '').messages({
+    'date.min': 'Tanggal TMT CPNS/PNS tidak masuk akal (terlalu lampau)',
+    'date.max': 'Tanggal TMT CPNS/PNS tidak boleh di masa depan',
+  }),
   masa_kerja_kumulatif_tahun: Joi.number().integer().min(0).allow(null, ''),
   masa_kerja_kumulatif_bulan: Joi.number().integer().min(0).max(11).allow(null, ''),
   masa_kerja_pengurangan_tahun: Joi.number().integer().min(0).allow(null, ''),

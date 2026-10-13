@@ -57,24 +57,33 @@
           <h3 class="text-sm font-semibold text-gray-800">Individu Terbaru</h3>
           <router-link to="/admin/individu" class="text-xs text-blue-600 hover:underline">Lihat semua</router-link>
         </div>
+        <div class="px-5 pt-4">
+          <TableSearchBox v-model="table.search" />
+        </div>
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead><tr class="bg-gray-50 text-left"><th class="p-3 text-[10px] font-semibold text-gray-400 uppercase">Nama</th><th class="p-3 text-[10px] font-semibold text-gray-400 uppercase">Instansi</th><th class="p-3 text-[10px] font-semibold text-gray-400 uppercase">Jenis</th><th class="p-3 text-[10px] font-semibold text-gray-400 uppercase">Tanggal</th></tr></thead>
+          <table class="responsive-table">
+            <thead><tr class="bg-gray-50 text-left">
+              <th v-for="col in columns" :key="col.key" class="p-3 text-[10px] font-semibold text-gray-400 uppercase" :class="[col.sortable && 'cursor-pointer hover:text-gray-600', col.headerClass]" @click="col.sortable && table.toggleSort(col.key)">
+                {{ col.label }}
+                <span v-if="col.sortable && table.sortKey === col.key">{{ table.sortDir === 'asc' ? '▲' : '▼' }}</span>
+              </th>
+            </tr></thead>
             <tbody class="divide-y divide-gray-50">
-              <tr v-if="loading"><td colspan="4" class="p-8 text-center text-gray-400"><div class="animate-pulse">Memuat...</div></td></tr>
-              <tr v-else-if="recentIndividu.length===0"><td colspan="4" class="p-8 text-center text-gray-400 text-sm">Belum ada data</td></tr>
-              <tr v-for="row in recentIndividu" :key="row.id" class="hover:bg-gray-50 transition text-xs">
-                <td class="p-2.5"><span class="font-medium text-gray-800">{{ row.nama }}</span></td>
-                <td class="p-2.5 text-gray-500">{{ row.instansi || '-' }}</td>
-                <td class="p-2.5">
+              <tr v-if="loading" data-empty-row><td :colspan="columns.length" class="p-8 text-center text-gray-400"><div class="animate-pulse">Memuat...</div></td></tr>
+              <tr v-else-if="table.pageRows.length === 0" data-empty-row><td :colspan="columns.length" class="p-8 text-center text-gray-400">Belum ada data</td></tr>
+              <tr v-for="row in table.pageRows" :key="row.id" class="hover:bg-gray-50 transition text-xs">
+                <td data-label="Nama" class="p-2.5"><span class="font-medium text-gray-800">{{ row.nama }}</span></td>
+                <td data-label="Instansi" class="p-2.5 text-gray-500">{{ row.instansi || '-' }}</td>
+                <td data-label="Jenis" class="p-2.5">
                   <span v-if="row.jenis_penghargaan" class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-medium">{{ row.jenis_penghargaan }}</span>
                   <span v-else class="text-gray-400">-</span>
                 </td>
-                <td class="p-2.5 text-gray-500">{{ row.tgl_penghargaan || '-' }}</td>
+                <td data-label="Tanggal" class="p-2.5 text-gray-500">{{ row.tgl_penghargaan || '-' }}</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <TablePagination :page="table.page" @update:page="table.goToPage" v-model:page-size="table.pageSize" :total-pages="table.totalPages" :total-items="table.totalItems" />
       </div>
     </div>
 
@@ -107,10 +116,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import api from '../../api/client';
 import BarChart from '../../components/shared/BarChart.vue';
 import PieChart from '../../components/shared/PieChart.vue';
+import TableSearchBox from '../../components/shared/TableSearchBox.vue';
+import TablePagination from '../../components/shared/TablePagination.vue';
+import { useTable } from '../../composables/useTable';
 
 const loading = ref(true);
 const stats = ref(null);
@@ -118,6 +130,14 @@ const penghargaanPerTahun = ref([]);
 const penghargaanPerJenis = ref([]);
 const penghargaanPerInstansi = ref([]);
 const recentIndividu = ref([]);
+
+const columns = [
+  { key: 'nama', label: 'Nama', sortable: true },
+  { key: 'instansi', label: 'Instansi', sortable: true },
+  { key: 'jenis_penghargaan', label: 'Jenis', sortable: true },
+  { key: 'tgl_penghargaan', label: 'Tanggal', sortable: true },
+];
+const table = reactive(useTable(recentIndividu, { columns }));
 
 const chartTahunLabels = computed(() => penghargaanPerTahun.value.map(d => d.tahun));
 const chartTahunDataset = computed(() => ({
@@ -135,7 +155,7 @@ const chartInstansiLabels = computed(() => penghargaanPerInstansi.value.map(d =>
 const chartInstansiDataset = computed(() => ({
   label: 'Jumlah',
   data: penghargaanPerInstansi.value.map(d => parseInt(d.jumlah)),
-  backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#ef4444','#f97316','#84cc16','#6366f1'],
+  backgroundColor: '#3b82f6',
   borderRadius: 4,
   maxBarThickness: 24,
 }));

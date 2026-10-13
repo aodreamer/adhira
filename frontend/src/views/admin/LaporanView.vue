@@ -31,25 +31,32 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="p-4 border-b border-gray-100">
+        <TableSearchBox v-model="table.search" />
+      </div>
       <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead><tr class="bg-gray-50 text-left"><th class="p-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama</th><th class="p-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tahun</th><th class="p-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis</th><th class="p-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">File</th><th class="p-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Aksi</th></tr></thead>
+        <table class="responsive-table">
+          <thead><tr class="bg-gray-50 text-left">
+            <th v-for="col in columns" :key="col.key" class="p-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider select-none" :class="[col.sortable && 'cursor-pointer hover:text-gray-700', col.headerClass]" @click="col.sortable && table.toggleSort(col.key)">
+              {{ col.label }}
+              <span v-if="col.sortable && table.sortKey === col.key" class="text-[10px]">{{ table.sortDir === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+          </tr></thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-if="loading"><td :colspan="5" class="p-12 text-center text-gray-400"><div class="animate-pulse">Memuat data...</div></td></tr>
-            <tr v-else-if="data.length===0"><td :colspan="5" class="p-12 text-center text-gray-400">Belum ada data</td></tr>
-            <tr v-for="row in data" :key="row.id" class="hover:bg-gray-50 transition">
-              <td class="p-3.5 text-sm font-medium text-gray-800">{{ row.nama_laporan }}</td>
-              <td class="p-3.5 text-sm text-gray-600">{{ row.tahun_laporan }}</td>
-              <td class="p-3.5"><span class="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 font-medium">{{ row.jenis_laporan }}</span></td>
-              
-              <td class="p-3.5">
+            <tr v-if="loading" data-empty-row><td :colspan="columns.length" class="p-12 text-center text-gray-400"><div class="animate-pulse">Memuat data...</div></td></tr>
+            <tr v-else-if="table.pageRows.length === 0" data-empty-row><td :colspan="columns.length" class="p-12 text-center text-gray-400">Belum ada data</td></tr>
+            <tr v-for="row in table.pageRows" :key="row.id" class="hover:bg-gray-50 transition">
+              <td data-label="Nama" class="p-3.5 text-sm font-medium text-gray-800">{{ row.nama_laporan }}</td>
+              <td data-label="Tahun" class="p-3.5 text-sm text-gray-600">{{ row.tahun_laporan }}</td>
+              <td data-label="Jenis" class="p-3.5"><span class="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 font-medium">{{ row.jenis_laporan }}</span></td>
+              <td data-label="File" class="p-3.5">
                 <button type="button" v-if="row.file_laporan" @click="openPreview('/laporan/' + row.id + '/download', row.file_laporan)" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                   Lihat
                 </button>
                 <span v-else class="text-gray-300 text-xs">-</span>
               </td>
-              <td class="p-3.5">
+              <td data-label="Aksi" class="p-3.5">
                 <div class="flex justify-end gap-1">
                   <button @click="openEdit(row)" class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition">Edit</button>
                   <button @click="confirmDelete(row)" class="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button>
@@ -59,6 +66,7 @@
           </tbody>
         </table>
       </div>
+      <TablePagination :page="table.page" @update:page="table.goToPage" v-model:page-size="table.pageSize" :total-pages="table.totalPages" :total-items="table.totalItems" />
     </div>
 
     <!-- Add Modal -->
@@ -78,12 +86,25 @@ import api from '../../api/client';
 import ConfirmModal from '../../components/shared/ConfirmModal.vue';
 import FilePreviewModal from '../../components/shared/FilePreviewModal.vue';
 import { useFilePreview } from '../../composables/useFilePreview';
+import TableSearchBox from '../../components/shared/TableSearchBox.vue';
+import TablePagination from '../../components/shared/TablePagination.vue';
+import { useTable } from '../../composables/useTable';
 const { previewState, openPreview, closePreview } = useFilePreview();
 
 const data = ref([]);
 const filters = ref({ tahun: [], jenis: [] });
 const filter = reactive({ tahun: '', jenis: '' });
 const loading = ref(true);
+
+const columns = [
+  { key: 'nama_laporan', label: 'Nama', sortable: true },
+  { key: 'tahun_laporan', label: 'Tahun', sortable: true },
+  { key: 'jenis_laporan', label: 'Jenis', sortable: true },
+  { key: 'file_laporan', label: 'File', sortable: false },
+  { key: 'aksi', label: 'Aksi', sortable: false, headerClass: 'text-right' },
+];
+const table = reactive(useTable(data, { columns }));
+
 const showAdd = ref(false); const showEdit = ref(false); const showConfirm = ref(false);
 const formError = ref(''); const saving = ref(false); const deleteId = ref(null);
 const fileInput = ref(null); const editFileInput = ref(null);

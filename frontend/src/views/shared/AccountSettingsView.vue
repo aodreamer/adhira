@@ -72,6 +72,9 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1">Pangkat/Golongan</label>
                 <select v-model="profileForm.pangkat" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none bg-white">
                   <option value="" disabled>Pilih pangkat/golongan</option>
+                  <optgroup label="PNS / Golongan">
+                    <option v-for="opt in PANGKAT_PNS" :key="'pns-' + opt" :value="opt">{{ opt }}</option>
+                  </optgroup>
                   <optgroup label="TNI Angkatan Darat">
                     <option v-for="opt in PANGKAT_TNI_AD" :key="'ad-' + opt" :value="opt">{{ opt }}</option>
                   </optgroup>
@@ -84,14 +87,18 @@
                   <optgroup label="Polri">
                     <option v-for="opt in PANGKAT_POLRI" :key="'polri-' + opt" :value="opt">{{ opt }}</option>
                   </optgroup>
-                  <optgroup label="PNS / Golongan">
-                    <option v-for="opt in PANGKAT_PNS" :key="'pns-' + opt" :value="opt">{{ opt }}</option>
-                  </optgroup>
                 </select>
               </div>
             </div>
 
-            <div v-if="profileForm.instansi === 'Pemerintah Daerah'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-dashed border-gray-200">
+              <div v-if="profileForm.instansi === 'Pemerintah Pusat'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-dashed border-gray-200">
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">Nama Instansi <span class="text-red-500">*</span></label>
+                  <input v-model="profileForm.nama_instansi" placeholder="mis. Kementerian Komunikasi dan Digital" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+                </div>
+              </div>
+
+              <div v-if="profileForm.instansi === 'Pemerintah Daerah'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-dashed border-gray-200">
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Jenis Pemerintah Daerah</label>
                 <select v-model="profileForm.pemda_tipe" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none bg-white">
@@ -160,16 +167,16 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Password Saat Ini</label>
-            <input v-model="passwordForm.currentPassword" type="password" required class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+            <PasswordInput v-model="passwordForm.currentPassword" required />
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Password Baru</label>
-            <input v-model="passwordForm.newPassword" type="password" required minlength="8" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+            <PasswordInput v-model="passwordForm.newPassword" required minlength="8" />
             <p class="text-[11px] text-gray-400 mt-1">Minimal 8 karakter, huruf dan angka</p>
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Konfirmasi Password Baru</label>
-            <input v-model="passwordForm.confirmPassword" type="password" required minlength="8" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none" />
+            <PasswordInput v-model="passwordForm.confirmPassword" required minlength="8" />
             <p v-if="passwordForm.confirmPassword && passwordForm.confirmPassword !== passwordForm.newPassword" class="text-[11px] text-red-500 mt-1">Password tidak sama</p>
           </div>
         </div>
@@ -187,6 +194,7 @@
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import api from '../../api/client';
 import { useAuthStore } from '../../stores/auth';
+import PasswordInput from '../../components/shared/PasswordInput.vue';
 import {
   INSTANSI_OPTIONS, PANGKAT_TNI_AD, PANGKAT_TNI_AU, PANGKAT_TNI_AL, PANGKAT_POLRI, PANGKAT_PNS,
 } from '../../constants/rank-data';
@@ -197,7 +205,7 @@ import { computeMasaKerjaPersandian } from '../../constants/masa-kerja';
 const authStore = useAuthStore();
 
 const profileForm = reactive({
-  nama: '', email: '', hp: '', nipnrp: '', instansi: '', jabatan: '', unit_kerja: '', pangkat: '',
+  nama: '', email: '', hp: '', nipnrp: '', instansi: '', nama_instansi: '', jabatan: '', unit_kerja: '', pangkat: '',
   pemda_tipe: '', pemda_provinsi: '', pemda_kabkota: '',
   tgl_tmt_cpns_pns: '', masa_kerja_kumulatif_tahun: null, masa_kerja_kumulatif_bulan: null,
   masa_kerja_pengurangan_tahun: null, masa_kerja_pengurangan_bulan: null,
@@ -218,6 +226,9 @@ watch(() => profileForm.instansi, () => {
   if (loading) return;
   if (profileForm.instansi !== 'Pemerintah Daerah') {
     profileForm.pemda_tipe = ''; profileForm.pemda_provinsi = ''; profileForm.pemda_kabkota = '';
+  }
+  if (profileForm.instansi !== 'Pemerintah Pusat') {
+    profileForm.nama_instansi = '';
   }
 });
 watch(() => profileForm.pemda_tipe, () => {
@@ -241,6 +252,7 @@ async function loadProfile() {
     profileForm.hp = data.hp || '';
     profileForm.nipnrp = data.nipnrp || '';
     profileForm.instansi = data.instansi || '';
+    profileForm.nama_instansi = data.nama_instansi || '';
     profileForm.jabatan = data.jabatan || '';
     profileForm.unit_kerja = data.unit_kerja || '';
     profileForm.pangkat = data.pangkat || '';
@@ -269,6 +281,7 @@ async function handleProfileSave() {
     const payload = { nama: profileForm.nama, email: profileForm.email, hp: profileForm.hp };
     if (authStore.user?.level === 'User') {
       payload.instansi = profileForm.instansi;
+      payload.nama_instansi = profileForm.instansi === 'Pemerintah Pusat' ? profileForm.nama_instansi : '';
       payload.jabatan = profileForm.jabatan;
       payload.unit_kerja = profileForm.unit_kerja;
       payload.pangkat = profileForm.pangkat;

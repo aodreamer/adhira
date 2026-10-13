@@ -83,7 +83,10 @@ async function register(req, res) {
   try {
     // level is always forced to 'User' here — registration can never grant
     // elevated access; only an existing Admin can promote an account later.
-    const { nama, email, hp, username, password, nipnrp, instansi, jabatan, unit_kerja, pangkat } = req.body;
+    const {
+      nama, email, hp, username, password, nipnrp, instansi, jabatan, unit_kerja, pangkat, nama_instansi,
+      pemda_tipe, pemda_provinsi, pemda_kabkota,
+    } = req.body;
 
     const exists = await UserModel.findByUsername(username);
     if (exists) return res.status(400).json({ error: 'Username sudah terdaftar' });
@@ -98,10 +101,14 @@ async function register(req, res) {
       nama, email: email || '', hp: hp || '', username, password: hashed, level: 'User', is_active: 1,
     });
 
+    const isPemda = instansi === 'Pemerintah Daerah';
     await pool.query(
-      `INSERT INTO data_individu (nipnrp, nama, instansi, jabatan, unit_kerja, pangkat, jenis_penghargaan, tgl_penghargaan, tgl_upload, id_user)
-       VALUES ($1,$2,$3,$4,$5,$6,'Sedang Diajukan',CURRENT_DATE,CURRENT_DATE,$7)`,
-      [nipnrp, nama, instansi || '', jabatan || '', unit_kerja || '', pangkat || '', user.id_user]
+      `INSERT INTO data_individu (nipnrp, nama, instansi, nama_instansi, jabatan, unit_kerja, pangkat, jenis_penghargaan, tgl_penghargaan, tgl_upload, id_user, pemda_tipe, pemda_provinsi, pemda_kabkota)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,'Sedang Diajukan',CURRENT_DATE,CURRENT_DATE,$8,$9,$10,$11)`,
+      [
+        nipnrp, nama, instansi || '', nama_instansi || '', jabatan || '', unit_kerja || '', pangkat || '', user.id_user,
+        isPemda ? (pemda_tipe || '') : '', isPemda ? (pemda_provinsi || '') : '', isPemda && pemda_tipe !== 'Pemerintah Provinsi' ? (pemda_kabkota || '') : '',
+      ]
     );
 
     res.status(201).json({
@@ -126,7 +133,10 @@ async function register(req, res) {
 // registrasinya (lihat router guard di frontend dan authorize di routes).
 async function registerVerifikator(req, res) {
   try {
-    const { kode_pendaftaran, nama, email, hp, username, password, instansi, nipnrp, jabatan, unit_kerja, pangkat } = req.body;
+    const {
+      kode_pendaftaran, nama, email, hp, username, password, instansi, nipnrp, jabatan, unit_kerja, pangkat,
+      nama_instansi, pemda_tipe, pemda_provinsi, pemda_kabkota,
+    } = req.body;
 
     const code = await CodeModel.findValidByKode(kode_pendaftaran);
     if (!code) return res.status(400).json({ error: 'Kode pendaftaran tidak valid atau sudah kadaluarsa' });
@@ -134,11 +144,16 @@ async function registerVerifikator(req, res) {
     const exists = await UserModel.findByUsername(username);
     if (exists) return res.status(400).json({ error: 'Username sudah terdaftar' });
 
+    const isPemda = instansi === 'Pemerintah Daerah';
     const hashed = await bcrypt.hash(password, 10);
     const user = await UserModel.create({
       nama, email, hp, username, password: hashed, level: 'Verifikator', is_active: 1, reg_status: 'Pending',
       reg_nipnrp: nipnrp, reg_pangkat: pangkat, reg_jabatan: jabatan, reg_unit_kerja: unit_kerja,
       reg_code_id: code.id,
+      reg_nama_instansi: instansi === 'Pemerintah Pusat' ? (nama_instansi || null) : null,
+      reg_pemda_tipe: isPemda ? (pemda_tipe || null) : null,
+      reg_pemda_provinsi: isPemda ? (pemda_provinsi || null) : null,
+      reg_pemda_kabkota: isPemda && pemda_tipe !== 'Pemerintah Provinsi' ? (pemda_kabkota || null) : null,
     });
 
     await VerifikatorModel.setScope(user.id_user, [instansi]);

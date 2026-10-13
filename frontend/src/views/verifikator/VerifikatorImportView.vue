@@ -46,30 +46,30 @@
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+          <TableSearchBox v-model="table.search" />
+        </div>
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[1000px]">
+          <table class="responsive-table">
             <thead><tr class="bg-gray-50 text-left">
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">#</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Nama / NIP</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Email</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Jabatan</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Pangkat</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-center">Status</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">Aksi</th>
+              <th v-for="col in columns" :key="col.key" class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap" :class="[col.sortable && 'cursor-pointer hover:text-gray-600', col.headerClass]" @click="col.sortable && table.toggleSort(col.key)">
+                {{ col.label }}
+                <span v-if="col.sortable && table.sortKey === col.key">{{ table.sortDir === 'asc' ? '▲' : '▼' }}</span>
+              </th>
             </tr></thead>
             <tbody class="divide-y divide-gray-100">
-              <template v-for="row in batch.rows" :key="row.id">
+              <template v-for="row in table.pageRows" :key="row.id">
                 <tr v-if="editingRowId !== row.id" class="hover:bg-gray-50 transition text-xs align-top">
-                  <td class="p-3 text-gray-400">{{ row.row_number }}</td>
-                  <td class="p-3"><div class="font-medium text-gray-800">{{ row.nama }}</div><div class="text-gray-400 font-mono text-[10px]">{{ row.nipnrp }}</div></td>
-                  <td class="p-3 text-gray-600">{{ row.email }}</td>
-                  <td class="p-3 text-gray-600">{{ row.jabatan }}</td>
-                  <td class="p-3 text-gray-600">{{ row.pangkat }}</td>
-                  <td class="p-3 text-center">
+                  <td data-label="#" class="p-3 text-gray-400">{{ row.row_number }}</td>
+                  <td data-label="Nama / NIP" class="p-3"><div class="font-medium text-gray-800">{{ row.nama }}</div><div class="text-gray-400 font-mono text-[10px]">{{ row.nipnrp }}</div></td>
+                  <td data-label="Email" class="p-3 text-gray-600">{{ row.email }}</td>
+                  <td data-label="Jabatan" class="p-3 text-gray-600">{{ row.jabatan }}</td>
+                  <td data-label="Pangkat" class="p-3 text-gray-600">{{ row.pangkat }}</td>
+                  <td data-label="Status" class="p-3 text-center">
                     <span class="px-2 py-0.5 text-[10px] rounded-full font-medium" :class="rowStatusClass(row.row_status)">{{ rowStatusLabel(row.row_status) }}</span>
                     <div v-if="row.errors && row.errors.length" class="text-[10px] text-red-500 mt-1">{{ row.errors.map(e => e.message).join('; ') }}</div>
                   </td>
-                  <td class="p-3 text-right"><button type="button" @click="startEdit(row)" class="text-[11px] font-medium text-indigo-700 hover:underline">Edit</button></td>
+                  <td data-label="Aksi" class="p-3 text-right"><button type="button" @click="startEdit(row)" class="text-[11px] font-medium text-indigo-700 hover:underline">Edit</button></td>
                 </tr>
                 <tr v-else class="bg-indigo-50/40 text-xs">
                   <td class="p-3 text-gray-400 align-top">{{ row.row_number }}</td>
@@ -126,6 +126,7 @@
             </tbody>
           </table>
         </div>
+        <TablePagination :page="table.page" @update:page="table.goToPage" v-model:page-size="table.pageSize" :total-pages="table.totalPages" :total-items="table.totalItems" />
       </div>
 
       <p v-if="confirmError" class="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{{ confirmError }}</p>
@@ -139,23 +140,26 @@
 
     <!-- Step: Result -->
     <div v-else-if="step === 'result'" class="space-y-4">
-      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800">
+      <div v-if="anyEmailUnsent" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800">
         Email otomatis belum aktif — mohon sampaikan kredensial berikut ini secara manual kepada masing-masing calon.
       </div>
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 border-b border-gray-100">
+          <TableSearchBox v-model="table2.search" />
+        </div>
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[900px]">
+          <table class="responsive-table">
             <thead><tr class="bg-gray-50 text-left">
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Nama</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Hasil</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Kredensial</th>
-              <th class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Email</th>
+              <th v-for="col in columns2" :key="col.key" class="p-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap" :class="[col.sortable && 'cursor-pointer hover:text-gray-600', col.headerClass]" @click="col.sortable && table2.toggleSort(col.key)">
+                {{ col.label }}
+                <span v-if="col.sortable && table2.sortKey === col.key">{{ table2.sortDir === 'asc' ? '▲' : '▼' }}</span>
+              </th>
             </tr></thead>
             <tbody class="divide-y divide-gray-100">
-              <tr v-for="row in result.rows" :key="row.id" class="text-xs">
-                <td class="p-3"><div class="font-medium text-gray-800">{{ row.nama }}</div><div class="text-gray-400 font-mono text-[10px]">{{ row.nipnrp }}</div></td>
-                <td class="p-3"><span class="px-2 py-0.5 text-[10px] rounded-full font-medium" :class="resultStatusClass(row.result_status)">{{ row.result_status }}</span></td>
-                <td class="p-3">
+              <tr v-for="row in table2.pageRows" :key="row.id" class="text-xs">
+                <td data-label="Nama" class="p-3"><div class="font-medium text-gray-800">{{ row.nama }}</div><div class="text-gray-400 font-mono text-[10px]">{{ row.nipnrp }}</div></td>
+                <td data-label="Hasil" class="p-3"><span class="px-2 py-0.5 text-[10px] rounded-full font-medium" :class="resultStatusClass(row.result_status)">{{ row.result_status }}</span></td>
+                <td data-label="Kredensial" class="p-3">
                   <div v-if="row.generated_username" class="font-mono text-[11px] text-gray-700">
                     <div>user: {{ row.generated_username }}</div>
                     <div class="flex items-center gap-1.5">pass: {{ row.generated_password_plain }}
@@ -164,7 +168,7 @@
                   </div>
                   <span v-else class="text-gray-400">-</span>
                 </td>
-                <td class="p-3">
+                <td data-label="Email" class="p-3">
                   <span v-if="row.email_status" class="px-2 py-0.5 text-[10px] rounded-full font-medium" :class="row.email_status === 'Sent' ? 'bg-emerald-100 text-emerald-700' : row.email_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'">{{ row.email_status }}</span>
                   <span v-else class="text-gray-400">-</span>
                 </td>
@@ -172,6 +176,7 @@
             </tbody>
           </table>
         </div>
+        <TablePagination :page="table2.page" @update:page="table2.goToPage" v-model:page-size="table2.pageSize" :total-pages="table2.totalPages" :total-items="table2.totalItems" />
       </div>
       <button type="button" @click="resetToUpload" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 transition">Impor Batch Baru</button>
     </div>
@@ -183,6 +188,9 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import api from '../../api/client';
 import { PANGKAT_TNI_AD, PANGKAT_TNI_AU, PANGKAT_TNI_AL, PANGKAT_POLRI, PANGKAT_PNS } from '../../constants/rank-data';
 import { PROVINCES, REGENCIES } from '../../constants/wilayah';
+import TableSearchBox from '../../components/shared/TableSearchBox.vue';
+import TablePagination from '../../components/shared/TablePagination.vue';
+import { useTable } from '../../composables/useTable';
 
 const ALL_PANGKAT = [...new Set([...PANGKAT_TNI_AD, ...PANGKAT_TNI_AU, ...PANGKAT_TNI_AL, ...PANGKAT_POLRI, ...PANGKAT_PNS])];
 
@@ -204,6 +212,28 @@ const confirming = ref(false);
 const confirmError = ref('');
 const result = ref(null);
 
+const columns = [
+  { key: 'row_number', label: '#', sortable: true },
+  { key: 'nama', label: 'Nama / NIP', sortable: true, sortValue: (r) => r.nama || '' },
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'jabatan', label: 'Jabatan', sortable: true },
+  { key: 'pangkat', label: 'Pangkat', sortable: true },
+  { key: 'row_status', label: 'Status', sortable: true, headerClass: 'text-center' },
+  { key: 'aksi', label: 'Aksi', sortable: false, headerClass: 'text-right' },
+];
+// batch.rows is edited in place (see saveEdit), so the row source is a
+// computed reading through the ref -- pageRows/sort/search stay reactive to
+// row edits and to the batch being replaced wholesale on a new upload.
+const table = reactive(useTable(computed(() => batch.value?.rows || []), { columns }));
+
+const columns2 = [
+  { key: 'nama', label: 'Nama', sortable: true, sortValue: (r) => r.nama || '' },
+  { key: 'result_status', label: 'Hasil', sortable: true },
+  { key: 'kredensial', label: 'Kredensial', sortable: false },
+  { key: 'email_status', label: 'Email', sortable: true },
+];
+const table2 = reactive(useTable(computed(() => result.value?.rows || []), { columns: columns2 }));
+
 const counts = computed(() => {
   const rows = batch.value?.rows || [];
   return {
@@ -212,6 +242,10 @@ const counts = computed(() => {
     error: rows.filter((r) => r.row_status === 'Error').length,
   };
 });
+
+const anyEmailUnsent = computed(() =>
+  (result.value?.rows || []).some((r) => r.result_status === 'Created' && r.email && r.email_status !== 'Sent')
+);
 
 const editRegencyOptions = computed(() => {
   const type = editForm.pemda_tipe === 'Pemerintah Kota' ? 'Kota' : 'Kabupaten';

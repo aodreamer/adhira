@@ -13,7 +13,7 @@ const FILE_COLUMNS = [
 ];
 
 const TEXT_COLUMNS = [
-  'tgl_upload', 'tgl_penghargaan', 'nama', 'instansi', 'jabatan', 'unit_kerja', 'nipnrp', 'pangkat', 'jenis_penghargaan',
+  'tgl_upload', 'tgl_penghargaan', 'nama', 'instansi', 'nama_instansi', 'jabatan', 'unit_kerja', 'nipnrp', 'pangkat', 'jenis_penghargaan',
   'pemda_tipe', 'pemda_provinsi', 'pemda_kabkota',
   // Links this record to the mst_user account that owns it (stable even if
   // the account's nama changes later) — not applicant-facing data, so it's
@@ -41,7 +41,7 @@ const ALLOWED_COLUMNS = new Set([...TEXT_COLUMNS, ...FILE_COLUMNS, ...VERIFIKASI
 // callers to decide whether an edit should reset verifikasi_data_status
 // back to 'Menunggu' (only compares keys actually present in `incoming`).
 const PERSONAL_DATA_COLUMNS = [
-  'instansi', 'jabatan', 'unit_kerja', 'pangkat', 'jenis_penghargaan',
+  'instansi', 'nama_instansi', 'jabatan', 'unit_kerja', 'pangkat', 'jenis_penghargaan',
   'pemda_tipe', 'pemda_provinsi', 'pemda_kabkota',
   'tgl_tmt_cpns_pns', 'masa_kerja_kumulatif_tahun', 'masa_kerja_kumulatif_bulan',
   'masa_kerja_pengurangan_tahun', 'masa_kerja_pengurangan_bulan',
