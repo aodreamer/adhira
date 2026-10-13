@@ -46,3 +46,16 @@
     }
   }
 }
+/* Executive reports print their aggregate panels without operational navigation. */
+@media print {
+  body:has(.executive-dashboard) aside,
+  body:has(.executive-dashboard) header,
+  .executive-filters, .executive-actions { display: none !important; }
+  body:has(.executive-dashboard) main { padding: 0 !important; }
+  body:has(.executive-dashboard) aside + div { padding-left: 0 !important; }
+  .executive-dashboard { color: #111; }
+  .executive-dashboard section, .executive-dashboard article { break-inside: avoid; }
+  .executive-dashboard .executive-hero { background: white !important; color: #111 !important; border: 1px solid #ccc; }
+  .executive-dashboard .executive-hero p { color: #333 !important; }
+  .executive-dashboard .institution-table { font-size: 10px; }
+}

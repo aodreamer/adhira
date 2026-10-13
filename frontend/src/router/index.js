@@ -28,6 +28,7 @@ const routes = [
     meta: { requiresAuth: true, role: 'Admin' },
     children: [
       { path: '', name: 'Dashboard', component: () => import('../views/admin/DashboardView.vue') },
+      { path: 'executive', name: 'AdminExecutiveDashboard', component: () => import('../views/executive/ExecutiveDashboardView.vue') },
       { path: 'users', name: 'ManUser', component: () => import('../views/admin/ManUserView.vue') },
       { path: 'individu', name: 'Individu', component: () => import('../views/admin/IndividuView.vue') },
       { path: 'pemberitahuan', name: 'Pemberitahuan', component: () => import('../views/admin/PemberitahuanView.vue') },
@@ -37,6 +38,15 @@ const routes = [
       { path: 'verifikator-registrations', name: 'AdminVerifikatorRegistrations', component: () => import('../views/admin/AdminVerifikatorRegistrationView.vue') },
       { path: 'verifikator-codes', name: 'AdminVerifikatorCodes', component: () => import('../views/admin/AdminVerifikatorCodeView.vue') },
       { path: 'account', name: 'AdminAccount', component: () => import('../views/shared/AccountSettingsView.vue') },
+    ],
+  },
+  {
+    path: '/pimpinan',
+    component: () => import('../components/layout/ExecutiveLayout.vue'),
+    meta: { requiresAuth: true, role: 'Pimpinan' },
+    children: [
+      { path: '', name: 'ExecutiveDashboard', component: () => import('../views/executive/ExecutiveDashboardView.vue') },
+      { path: 'account', name: 'PimpinanAccount', component: () => import('../views/shared/AccountSettingsView.vue') },
     ],
   },
   {
@@ -73,7 +83,7 @@ const router = createRouter({
 // Bulk-imported accounts get a random generated password shown to (and
 // manually distributed by) a Dewan Penghargaan member, so it must be
 // rotated before the account can do anything else.
-const ROLE_BASE_PATH = { Admin: '/admin', User: '/user', Verifikator: '/verifikator' };
+const ROLE_BASE_PATH = { Admin: '/admin', User: '/user', Verifikator: '/verifikator', Pimpinan: '/pimpinan' };
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();

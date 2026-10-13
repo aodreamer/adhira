@@ -25,7 +25,11 @@
       </button>
     </div>
     <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-1">
-      <router-link to="/admin" :title="uiStore.sidebarCollapsed ? 'Beranda' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+      <router-link to="/admin/executive" title="Executive Dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h16M6 16V9m6 7V4m6 12v-5"/></svg>
+        <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Executive Dashboard</span>
+      </router-link>
+      <router-link to="/admin" :title="uiStore.sidebarCollapsed ? 'Beranda' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" exact-active-class="bg-gray-800 text-white font-medium">
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Beranda</span>
       </router-link>

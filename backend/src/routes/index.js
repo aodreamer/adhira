@@ -8,6 +8,7 @@ const authController = require("../controllers/auth.controller");
 const userController = require("../controllers/user.controller");
 const individuController = require("../controllers/individu.controller");
 const dashboardController = require("../controllers/dashboard.controller");
+const executiveDashboard = require("../controllers/executive-dashboard.controller");
 const { loginSchema, registerSchema, registerVerifikatorSchema } = require("../validators/auth.validator");
 const { createUserSchema, updateUserSchema } = require("../validators/user.validator");
 const {
@@ -29,6 +30,7 @@ router.post("/auth/register", authController.registerLimiter, validate(registerS
 router.post("/auth/register-verifikator", authController.registerLimiter, validate(registerVerifikatorSchema), authController.registerVerifikator);
 
 router.get("/dashboard", authenticate, authorize("Admin"), dashboardController.index);
+router.get("/executive-dashboard", authenticate, authorize("Admin", "Pimpinan"), executiveDashboard.index);
 
 router.get("/users", authenticate, authorize("Admin"), userController.list);
 router.post("/users", authenticate, authorize("Admin"), validate(createUserSchema), userController.create);

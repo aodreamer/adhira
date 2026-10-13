@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend, Filler } from 'chart.js';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend, Filler);
@@ -56,4 +56,5 @@ function createChart() {
 
 onMounted(createChart);
 watch(() => [props.labels, props.datasets], createChart, { deep: true });
+onBeforeUnmount(() => { chart?.destroy(); chart = null; });
 </script>

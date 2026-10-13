@@ -63,7 +63,7 @@ async function handleLogin() {
   error.value = ''; loading.value = true;
   try {
     const { user } = await authStore.login(form.value.username, form.value.password);
-    const home = { Admin: '/admin', Verifikator: '/verifikator' }[user.level] || '/user';
+    const home = { Admin: '/admin', Verifikator: '/verifikator', Pimpinan: '/pimpinan' }[user.level] || '/user';
     await router.push(home);
   } catch (err) {
     console.error('Login error:', err);

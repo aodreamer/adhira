@@ -26,8 +26,8 @@ const email = Joi.string().trim().email({ tlds: false }).allow('').messages({
   'string.email': 'Format email tidak valid',
 });
 
-const level = Joi.string().valid('Admin', 'User', 'Verifikator').messages({
-  'any.only': 'Level harus Admin, User, atau Verifikator',
+const level = Joi.string().valid('Admin', 'User', 'Verifikator', 'Pimpinan').messages({
+  'any.only': 'Level harus Admin, User, Verifikator, atau Pimpinan',
 });
 
 module.exports = { password, username, email, level };
