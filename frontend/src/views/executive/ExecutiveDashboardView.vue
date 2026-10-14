@@ -14,6 +14,8 @@
       </div>
     </motion.section>
 
+    <PeriodOverview v-if="report" :periods="periods" :active-id="report.filters.periode_id" :periods-path="periodsPath" :loading="loading" @select-period="selectPeriod" />
+
     <form @submit.prevent="load" class="executive-filters bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-wrap items-end gap-4">
       <label class="flex-1 min-w-[180px] text-xs font-semibold text-gray-600">Periode penghargaan
         <select aria-label="Periode penghargaan" v-model="filters.periode_id" class="filter-select"><option value="">Semua periode dan data lama</option><option v-for="period in periods" :key="period.id" :value="String(period.id)">{{ period.nama }}</option></select>
@@ -56,8 +58,6 @@
         </motion.article>
       </section>
 
-      <section v-if="activePeriod" class="panel"><div class="flex flex-wrap justify-between gap-3 mb-4"><div><h2 class="section-title">{{ activePeriod.nama }}</h2><p class="section-subtitle">Progres pelaksanaan seluruh periode, berdasarkan konfirmasi Admin.</p></div><router-link :to="periodsPath+'?id='+activePeriod.id" class="text-sm text-blue-600 hover:underline">Lihat tahapan ?</router-link></div><PeriodProgress :progress="activePeriod.progress" /></section>
-      <div v-else class="text-sm text-gray-500">Pilih periode untuk melihat progres pelaksanaannya. <router-link :to="periodsPath" class="text-blue-600 hover:underline">Pantau periode penghargaan ?</router-link></div>
       <IndonesiaMap id="wilayah" :rows="report.provinces || []" />
 
       <ExecutiveInsights id="analisis" :report="report" @focus-institution="focusInstitution" />
@@ -113,7 +113,7 @@ import { UsersIcon, CheckCircleIcon, ClockIcon, DocumentCheckIcon, ExclamationTr
 import api from '../../api/client';
 import {useRoute} from 'vue-router';
 import {useAuthStore} from '../../stores/auth';
-import PeriodProgress from '../../components/shared/PeriodProgress.vue';
+import PeriodOverview from '../../components/executive/PeriodOverview.vue';
 import ExecutiveChart from '../../components/executive/ExecutiveChart.vue';
 import ExecutiveInsights from '../../components/executive/ExecutiveInsights.vue';
 import AnimatedNumber from '../../components/executive/AnimatedNumber.vue';
@@ -193,6 +193,7 @@ async function load() {
   } finally { loading.value = false; }
 }
 function reset() { Object.assign(filters, {tahun:'',instansi:'',jenis:'',periode_id:''}); load(); }
+function selectPeriod(id) { filters.periode_id=String(id); load(); }
 function print() { window.print(); }
 function csvCell(value) {
   // Prevent spreadsheet formulas in institution labels supplied through forms/imports.

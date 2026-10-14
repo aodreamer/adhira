@@ -33,6 +33,8 @@ Setiap perubahan membutuhkan `revision` terbaru. Perubahan serentak dikendalikan
 
 ## Dashboard pimpinan
 
+Bagian atas Executive Dashboard selalu menampilkan kartu progres periode. Tanpa filter periode, maksimal tiga periode ditampilkan dengan prioritas Aktif, Persiapan, lalu Selesai; dalam status yang sama, tanggal mulai terbaru didahulukan. Kartu berisi rentang tanggal, status, progress bar, status delapan tahap, tahap berjalan atau berikutnya, jumlah pengusul terkait, dan tautan detail. Tombol Gunakan filter periode menerapkan periode kartu ke agregat pengusul.
+
 Filter Periode penghargaan berlaku bersama filter tahun pencatatan, instansi, dan jenis penghargaan pada seluruh agregat, peta, dan ekspor CSV. Pilihan Semua periode dan data lama mencakup record tanpa periode. Progress bar periode menampilkan progres seluruh periode dan diberi keterangan bahwa filter tambahan hanya mempersempit agregat pengusul. Tautan dari detail periode membuka dashboard dengan `periode_id` terpilih.
 
 ## Migrasi dan pemeriksaan
