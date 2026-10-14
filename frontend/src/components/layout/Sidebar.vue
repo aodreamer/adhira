@@ -29,6 +29,10 @@
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h16M6 16V9m6 7V4m6 12v-5"/></svg>
         <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Executive Dashboard</span>
       </router-link>
+      <router-link :to="authStore.user?.level === 'Pimpinan' ? '/pimpinan/periods' : '/admin/periods'" title="Periode Penghargaan" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" active-class="bg-gray-800 text-white font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+        <span :class="uiStore.sidebarCollapsed ? 'lg:hidden' : ''">Periode Penghargaan</span>
+      </router-link>
       <template v-if="authStore.user?.level === 'Admin'">
       <router-link to="/admin" :title="uiStore.sidebarCollapsed ? 'Beranda' : ''" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-800 hover:text-white transition" :class="uiStore.sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''" exact-active-class="bg-gray-800 text-white font-medium">
         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>

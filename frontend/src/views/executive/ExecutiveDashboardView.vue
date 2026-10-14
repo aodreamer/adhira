@@ -5,7 +5,7 @@
         <div>
           <h1 class="text-lg font-bold text-gray-800">Penghargaan Dharma Persandian</h1>
           <p class="text-sm text-gray-500 mt-1">Ringkasan pengusul, hasil verifikasi, dan dokumen keputusan.</p>
-          <div v-if="report" class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500"><span class="hero-pill"><BuildingOffice2Icon class="w-3.5 h-3.5" />{{ number(summary.instansi_tercakup) }} instansi</span><span class="hero-pill"><CalendarDaysIcon class="w-3.5 h-3.5" />{{ report.filters.tahun || 'Seluruh periode' }}</span><span class="hero-pill"><LockClosedIcon class="w-3.5 h-3.5" />Akses ringkasan</span></div>
+          <div v-if="report" class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500"><span class="hero-pill"><BuildingOffice2Icon class="w-3.5 h-3.5" />{{ number(summary.instansi_tercakup) }} instansi</span><span class="hero-pill"><CalendarDaysIcon class="w-3.5 h-3.5" />{{ activePeriod?.nama || report.filters.tahun || 'Seluruh periode' }}</span><span class="hero-pill"><LockClosedIcon class="w-3.5 h-3.5" />Akses ringkasan</span></div>
         </div>
         <div class="text-sm text-gray-500 xl:text-right space-y-2">
           <div class="flex items-center gap-2 xl:justify-end"><span class="h-2 w-2 rounded-full" :class="error ? 'bg-red-400' : 'bg-emerald-400'" aria-hidden="true"></span>{{ loading ? 'Memuat data…' : error ? 'Data belum tersedia' : 'Data aplikasi' }}</div>
@@ -15,6 +15,9 @@
     </motion.section>
 
     <form @submit.prevent="load" class="executive-filters bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-wrap items-end gap-4">
+      <label class="flex-1 min-w-[180px] text-xs font-semibold text-gray-600">Periode penghargaan
+        <select v-model="filters.periode_id" class="filter-select"><option value="">Semua periode dan data lama</option><option v-for="period in periods" :key="period.id" :value="String(period.id)">{{ period.nama }}</option></select>
+      </label>
       <label class="flex-1 min-w-[150px] text-xs font-semibold text-gray-600">Tahun pencatatan
         <select v-model="filters.tahun" class="filter-select"><option value="">Semua tahun</option><option v-for="year in options.tahun" :key="year" :value="String(year)">{{ year }}</option></select>
       </label>
@@ -53,6 +56,8 @@
         </motion.article>
       </section>
 
+      <section v-if="activePeriod" class="panel"><div class="flex flex-wrap justify-between gap-3 mb-4"><div><h2 class="section-title">{{ activePeriod.nama }}</h2><p class="section-subtitle">Progres pelaksanaan seluruh periode, berdasarkan konfirmasi Admin.</p></div><router-link :to="periodsPath+'?id='+activePeriod.id" class="text-sm text-blue-600 hover:underline">Lihat tahapan ?</router-link></div><PeriodProgress :progress="activePeriod.progress" /></section>
+      <div v-else class="text-sm text-gray-500">Pilih periode untuk melihat progres pelaksanaannya. <router-link :to="periodsPath" class="text-blue-600 hover:underline">Pantau periode penghargaan ?</router-link></div>
       <IndonesiaMap id="wilayah" :rows="report.provinces || []" />
 
       <ExecutiveInsights id="analisis" :report="report" @focus-institution="focusInstitution" />
@@ -106,6 +111,9 @@ import { ref, reactive, computed, onMounted, nextTick, toRef } from 'vue';
 import { motion,useReducedMotion } from 'motion-v';
 import { UsersIcon, CheckCircleIcon, ClockIcon, DocumentCheckIcon, ExclamationTriangleIcon, ArrowPathIcon, ArrowDownTrayIcon, PrinterIcon, BuildingOffice2Icon,CalendarDaysIcon,LockClosedIcon,MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import api from '../../api/client';
+import {useRoute} from 'vue-router';
+import {useAuthStore} from '../../stores/auth';
+import PeriodProgress from '../../components/shared/PeriodProgress.vue';
 import ExecutiveChart from '../../components/executive/ExecutiveChart.vue';
 import ExecutiveInsights from '../../components/executive/ExecutiveInsights.vue';
 import AnimatedNumber from '../../components/executive/AnimatedNumber.vue';
@@ -115,7 +123,11 @@ import TableSearchBox from '../../components/shared/TableSearchBox.vue';
 import TablePagination from '../../components/shared/TablePagination.vue';
 import { useTable } from '../../composables/useTable';
 
-const filters = reactive({ tahun: '', instansi: '', jenis: '' });
+const route=useRoute(),auth=useAuthStore();
+const periods=ref([]);
+const periodsPath=computed(()=>auth.user?.level==='Admin'?'/admin/periods':'/pimpinan/periods');
+const filters = reactive({ tahun: '', instansi: '', jenis: '', periode_id: /^\d+$/.test(String(route.query.periode_id||''))?String(route.query.periode_id):'' });
+const activePeriod=computed(()=>periods.value.find(p=>p.id===Number(report.value?.filters.periode_id)));
 const options = reactive({ tahun: [], instansi: [], jenis: [] });
 const report = ref(null);
 const loading = ref(false);
@@ -137,7 +149,7 @@ const updatedLabel = computed(() => new Intl.DateTimeFormat('id-ID', { dateStyle
 const appliedLabel = computed(() => {
   if (!report.value) return 'Semua tahun · Semua instansi · Semua jenis';
   const f = report.value.filters;
-  return [f.tahun || 'Semua tahun', f.instansi || 'Semua instansi', f.jenis || 'Semua jenis'].join(' · ');
+  return [periods.value.find(p=>p.id===Number(f.periode_id))?.nama || 'Semua periode',f.tahun || 'Semua tahun', f.instansi || 'Semua instansi', f.jenis || 'Semua jenis'].join(' · ');
 });
 const cards = computed(() => [
   { label: 'Total pengusul', value: summary.value.total, icon: UsersIcon, color: 'text-[#142a48]', barColor:'#142a48', description: `${number(summary.value.instansi_tercakup)} instansi tercakup`, featured: true },
@@ -170,7 +182,8 @@ async function load() {
   loading.value = true; error.value = '';
   const params = Object.fromEntries(Object.entries(filters).filter(([,v]) => v !== ''));
   try {
-    const { data } = await api.get('/executive-dashboard', { params });
+    const [{data},{data:periodData}]=await Promise.all([api.get('/executive-dashboard',{params}),api.get('/periods')]);
+    periods.value=periodData;
     report.value = data;
     institutionSearch.value = '';
     Object.assign(options, data.options);
@@ -179,7 +192,7 @@ async function load() {
     report.value = null;
   } finally { loading.value = false; }
 }
-function reset() { Object.assign(filters, {tahun:'',instansi:'',jenis:''}); load(); }
+function reset() { Object.assign(filters, {tahun:'',instansi:'',jenis:'',periode_id:''}); load(); }
 function print() { window.print(); }
 function csvCell(value) {
   // Prevent spreadsheet formulas in institution labels supplied through forms/imports.

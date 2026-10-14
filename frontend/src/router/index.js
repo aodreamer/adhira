@@ -29,6 +29,7 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: () => import('../views/admin/DashboardView.vue') },
       { path: 'executive', name: 'AdminExecutiveDashboard', component: () => import('../views/executive/ExecutiveDashboardView.vue') },
+      { path: 'periods', name: 'AdminPeriods', component: () => import('../views/shared/PeriodsView.vue') },
       { path: 'users', name: 'ManUser', component: () => import('../views/admin/ManUserView.vue') },
       { path: 'individu', name: 'Individu', component: () => import('../views/admin/IndividuView.vue') },
       { path: 'pemberitahuan', name: 'Pemberitahuan', component: () => import('../views/admin/PemberitahuanView.vue') },
@@ -46,6 +47,7 @@ const routes = [
     meta: { requiresAuth: true, role: 'Pimpinan' },
     children: [
       { path: '', name: 'ExecutiveDashboard', component: () => import('../views/executive/ExecutiveDashboardView.vue') },
+      { path: 'periods', name: 'PimpinanPeriods', component: () => import('../views/shared/PeriodsView.vue') },
       { path: 'account', name: 'PimpinanAccount', component: () => import('../views/shared/AccountSettingsView.vue') },
     ],
   },

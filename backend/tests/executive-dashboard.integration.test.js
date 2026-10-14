@@ -7,7 +7,7 @@ suite('executive PostgreSQL aggregates', () => {
   beforeAll(async () => {
     pool = new Pool({ connectionString:process.env.EXECUTIVE_TEST_DATABASE_URL,max:1 });
     await pool.query(`CREATE TEMP TABLE data_individu (
-      tgl_upload DATE, created_at TIMESTAMPTZ, instansi TEXT, nama_instansi TEXT,
+      periode_id INTEGER, tgl_upload DATE, created_at TIMESTAMPTZ, instansi TEXT, nama_instansi TEXT,
       pemda_tipe TEXT, pemda_provinsi TEXT, pemda_kabkota TEXT, jenis_penghargaan TEXT,
       verifikasi_data_status TEXT, verifikasi_berkas_status TEXT, file_kepka TEXT)`);
     const fixtures = [

@@ -2,7 +2,7 @@ const { aggregateProvinces } = require('../utils/executive-province');
 
 // Aggregate only: names, employee numbers, and document paths never leave this query.
 const BASE = `WITH records AS (
-  SELECT COALESCE(tgl_upload, created_at::date) AS recorded_on,
+  SELECT periode_id, COALESCE(tgl_upload, created_at::date) AS recorded_on,
     COALESCE(NULLIF(BTRIM(instansi), ''), 'Belum diisi') AS instansi,
     COALESCE(NULLIF(BTRIM(jenis_penghargaan), ''), 'Belum dipilih') AS jenis,
     NULLIF(UPPER(BTRIM(pemda_provinsi)), '') AS provinsi,
@@ -33,6 +33,7 @@ const BASE = `WITH records AS (
     ($1::int IS NULL OR EXTRACT(YEAR FROM recorded_on) = $1)
     AND ($2::text IS NULL OR instansi = $2)
     AND ($3::text IS NULL OR jenis = $3)
+    AND ($4::int IS NULL OR periode_id = $4)
 )`;
 
 const COUNTS = `COUNT(*)::int AS total,
@@ -47,7 +48,7 @@ const ATTENTION = `COUNT(*) FILTER (WHERE tahap IN ('verifikasi_data','verifikas
 
 async function loadExecutiveDashboard(pool, filters) {
   const client = await pool.connect();
-  const params = [filters.tahun, filters.instansi, filters.jenis];
+  const params = [filters.tahun, filters.instansi, filters.jenis, filters.periode_id ?? null];
   try {
     // All panels and exports describe the same snapshot, even during verification.
     await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
@@ -62,7 +63,7 @@ async function loadExecutiveDashboard(pool, filters) {
       FROM filtered`, params);
     const stages = await client.query(`${BASE} SELECT tahap, COUNT(*)::int AS jumlah FROM filtered GROUP BY tahap`, params);
     const trend = await client.query(`${BASE} SELECT
-      to_char(recorded_on, $4::text) AS periode, ${COUNTS}
+      to_char(recorded_on, $5::text) AS periode, ${COUNTS}
       FROM filtered WHERE recorded_on IS NOT NULL GROUP BY periode ORDER BY periode`,
       [...params, filters.tahun ? 'YYYY-MM' : 'YYYY']);
     const kinds = await client.query(`${BASE} SELECT jenis, COUNT(*)::int AS jumlah FROM filtered GROUP BY jenis ORDER BY jumlah DESC, jenis`, params);

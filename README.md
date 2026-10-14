@@ -27,7 +27,11 @@ Pengujian backend: `cd backend && npm test`. Pengujian SQL dashboard menggunakan
 
 Skema database dan data contoh (dummy) otomatis ter-load saat volume `pgdata` pertama kali dibuat, lewat file-file di `backend/migrations/` (termasuk `010_seed_data.up.sql`). Kalau volume sudah pernah ada sebelumnya, migrasi tidak otomatis dijalankan ulang — jalankan file `.sql` yang baru secara manual lewat `docker exec -i adhira_db psql -U euser -d adhira < backend/migrations/<file>.sql`.
 
-## Struktur
+## Periode penghargaan
+
+Administrator dapat membuat periode, mengatur jadwal dan status delapan tahap, serta mengaitkan pengusul dan dokumen melalui `/admin/periods`. Pimpinan memantau progress bar dan ringkasan melalui `/pimpinan/periods`. Dashboard menyediakan filter periode. Data lama tidak dikaitkan otomatis. Jalankan migrasi `013_award_periods.up.sql` untuk database yang sudah tersedia. Rincian tersedia pada [pengelolaan periode](docs/award-periods.md).
+
+## Struktur direktori
 
 - `backend/` - Express REST API
 - `frontend/` - Vue 3 SPA

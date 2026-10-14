@@ -31,6 +31,7 @@ router.post("/auth/register-verifikator", authController.registerLimiter, valida
 
 router.get("/dashboard", authenticate, authorize("Admin"), dashboardController.index);
 router.get("/executive-dashboard", authenticate, authorize("Admin", "Pimpinan"), executiveDashboard.index);
+router.use("/periods", require("./period.routes"));
 
 router.get("/users", authenticate, authorize("Admin"), userController.list);
 router.post("/users", authenticate, authorize("Admin"), validate(createUserSchema), userController.create);

@@ -31,7 +31,7 @@ test.each(['Admin','Pimpinan'])('%s can request validated filters', async level 
   const res = await request(app).get('/api/executive-dashboard?tahun=2026&instansi=BSSN').set('Authorization','Bearer '+token(level));
   expect(res.status).toBe(200);
   expect(res.headers['cache-control']).toBe('no-store');
-  expect(loadExecutiveDashboard).toHaveBeenCalledWith(pool,{tahun:2026,instansi:'BSSN',jenis:null});
+  expect(loadExecutiveDashboard).toHaveBeenCalledWith(pool,{tahun:2026,instansi:'BSSN',jenis:null,periode_id:null});
 });
 test.each(['tahun=2026 OR 1=1','tahun=2026.5','tahun=1800','tahun[]=2026','unexpected=1'])('invalid filter %s is rejected before loading data', async query => {
   pool.query.mockResolvedValue({rows:[{level:'Pimpinan',is_active:1}]});

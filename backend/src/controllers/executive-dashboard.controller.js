@@ -3,6 +3,7 @@ const pool = require('../config/database');
 const { loadExecutiveDashboard } = require('../models/executive-dashboard.model');
 
 const filterSchema = Joi.object({
+  periode_id: Joi.number().integer().positive().max(2147483647).allow(null).default(null),
   tahun: Joi.number().integer().min(1900).max(9999).allow(null).default(null),
   instansi: Joi.string().trim().max(255).allow(null).default(null),
   jenis: Joi.string().trim().max(255).allow(null).default(null),

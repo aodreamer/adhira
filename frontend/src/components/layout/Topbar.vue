@@ -29,6 +29,7 @@ const uiStore = useUiStore();
 const pageTitle = computed(() => {
   const t = { Dashboard:'Beranda',ManUser:'Manajemen User',Individu:'Berkas Individu',Pemberitahuan:'Surat Pemberitahuan',Laporan:'Laporan Kegiatan',Usulan:'Usulan Penghargaan',Distribusi:'Distribusi',AdminVerifikatorRegistrations:'Persetujuan Verifikator',AdminAccount:'Profil Saya' };
   if (['AdminExecutiveDashboard','ExecutiveDashboard'].includes(route.name)) return 'Executive Dashboard';
+  if (['AdminPeriods','PimpinanPeriods'].includes(route.name)) return 'Periode Penghargaan';
   if (route.name === 'PimpinanAccount') return 'Profil Saya';
   return t[route.name] || 'ADHIRA';
 });
