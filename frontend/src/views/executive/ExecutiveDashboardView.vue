@@ -16,7 +16,7 @@
 
     <form @submit.prevent="load" class="executive-filters bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-wrap items-end gap-4">
       <label class="flex-1 min-w-[180px] text-xs font-semibold text-gray-600">Periode penghargaan
-        <select v-model="filters.periode_id" class="filter-select"><option value="">Semua periode dan data lama</option><option v-for="period in periods" :key="period.id" :value="String(period.id)">{{ period.nama }}</option></select>
+        <select aria-label="Periode penghargaan" v-model="filters.periode_id" class="filter-select"><option value="">Semua periode dan data lama</option><option v-for="period in periods" :key="period.id" :value="String(period.id)">{{ period.nama }}</option></select>
       </label>
       <label class="flex-1 min-w-[150px] text-xs font-semibold text-gray-600">Tahun pencatatan
         <select v-model="filters.tahun" class="filter-select"><option value="">Semua tahun</option><option v-for="year in options.tahun" :key="year" :value="String(year)">{{ year }}</option></select>
