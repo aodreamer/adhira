@@ -200,7 +200,7 @@ function downloadCsv() {
     ['Usia pencatatan pengusul menunggu','Jumlah'],...age.bins.map(row=>[row.label,row.jumlah]),['Tanggal tidak tersedia',age.unknown],['Tanggal masa depan',age.future],
     [],['Status verifikasi data','Status verifikasi berkas','Jumlah'],...(r.verification_matrix||[]).map(row=>[row.status_data,row.status_berkas,row.jumlah]),
     [],['Periode pencatatan','Pengusul','Lolos verifikasi saat ini','Menunggu','Perbaikan','Draft'],...r.trend.map(row=>[row.periode,row.total,row.sesuai,row.menunggu,row.perbaikan,row.draft]),
-    [],['Provinsi yang dicatat','Pengusul','Lolos verifikasi','Menunggu','Perbaikan'],...(r.provinces||[]).map(row=>[row.provinsi||'Belum terpetakan (tanpa provinsi Pemda)',row.total,row.sesuai,row.menunggu,row.perbaikan]),
+    [],['Provinsi yang dicatat','Pengusul','Lolos verifikasi','Menunggu','Perbaikan'],...(r.provinces||[]).map(row=>[row.provinsi||'Belum terpetakan (wilayah belum dikenali)',row.total,row.sesuai,row.menunggu,row.perbaikan]),
   ];
   const blob = new Blob(['\uFEFF' + rows.map(row => row.map(csvCell).join(';')).join('\r\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);

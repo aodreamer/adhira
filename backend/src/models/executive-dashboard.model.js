@@ -1,9 +1,12 @@
+const { aggregateProvinces } = require('../utils/executive-province');
+
 // Aggregate only: names, employee numbers, and document paths never leave this query.
 const BASE = `WITH records AS (
   SELECT COALESCE(tgl_upload, created_at::date) AS recorded_on,
     COALESCE(NULLIF(BTRIM(instansi), ''), 'Belum diisi') AS instansi,
     COALESCE(NULLIF(BTRIM(jenis_penghargaan), ''), 'Belum dipilih') AS jenis,
-    CASE WHEN instansi = 'Pemerintah Daerah' THEN NULLIF(UPPER(BTRIM(pemda_provinsi)), '') END AS provinsi,
+    NULLIF(UPPER(BTRIM(pemda_provinsi)), '') AS provinsi,
+    NULLIF(UPPER(BTRIM(pemda_kabkota)), '') AS kabkota,
     CASE WHEN verifikasi_data_status IN ('Disetujui','Ditolak','Menunggu') THEN verifikasi_data_status
       WHEN verifikasi_data_status IS NULL THEN 'Menunggu' ELSE 'Lainnya' END AS status_data,
     CASE WHEN verifikasi_berkas_status IN ('Disetujui','Ditolak','Menunggu') THEN verifikasi_berkas_status
@@ -65,8 +68,8 @@ async function loadExecutiveDashboard(pool, filters) {
     const kinds = await client.query(`${BASE} SELECT jenis, COUNT(*)::int AS jumlah FROM filtered GROUP BY jenis ORDER BY jumlah DESC, jenis`, params);
     const institutions = await client.query(`${BASE} SELECT instansi_label AS instansi, ${COUNTS}, ${ATTENTION}
       FROM filtered GROUP BY instansi_label ORDER BY (COUNT(*) FILTER (WHERE tahap <> 'sesuai')) DESC, instansi_label`, params);
-    const provinces = await client.query(`${BASE} SELECT provinsi, ${COUNTS}
-      FROM filtered GROUP BY provinsi ORDER BY total DESC, provinsi NULLS LAST`, params);
+    const provinces = await client.query(`${BASE} SELECT instansi, provinsi, kabkota, ${COUNTS}
+      FROM filtered GROUP BY instansi, provinsi, kabkota`, params);
     const age = await client.query(`${BASE} SELECT CASE
       WHEN recorded_on IS NULL THEN 'unknown'
       WHEN recorded_on > CURRENT_DATE THEN 'future'
@@ -83,7 +86,7 @@ async function loadExecutiveDashboard(pool, filters) {
     return {
       updated_at: new Date().toISOString(),
       as_of_date, filters, options: filterOptions, summary: summary.rows[0],
-      stages: stages.rows, trend: trend.rows, kinds: kinds.rows, institutions: institutions.rows, provinces: provinces.rows,
+      stages: stages.rows, trend: trend.rows, kinds: kinds.rows, institutions: institutions.rows, provinces: aggregateProvinces(provinces.rows),
       waiting_age: age.rows, verification_matrix: matrix.rows,
       trend_unit: filters.tahun ? 'bulan' : 'tahun',
     };

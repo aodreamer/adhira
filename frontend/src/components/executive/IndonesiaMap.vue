@@ -54,7 +54,7 @@
       </div>
     </div>
     <div class="px-5 sm:px-6 py-4 border-t border-gray-100 text-xs text-gray-500 leading-relaxed">
-      Sebaran mengikuti data provinsi pada profil Pemerintah Daerah. Pengusul tanpa data provinsi tidak ditempatkan pada peta.
+      Sebaran mengikuti provinsi pada profil atau wilayah yang dikenali dari nama instansi lama. Pengusul tanpa wilayah yang dikenali tidak ditempatkan pada peta.
       <p v-if="mapData.unmatchedNames.length" class="mt-1 text-amber-700">Nama provinsi belum dikenali: {{ mapData.unmatchedNames.join(', ') }}.</p>
     </div>
   </section>

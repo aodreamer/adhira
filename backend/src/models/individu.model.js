@@ -118,6 +118,7 @@ const IndividuModel = {
     // Riwayat kepegawaian & judul berkas -- opsional saat create, sisanya
     // dilengkapi lewat update() (profil User / edit Admin).
     const optionalTextCols = [
+      'pemda_tipe', 'pemda_provinsi', 'pemda_kabkota',
       'tgl_tmt_cpns_pns', 'masa_kerja_kumulatif_tahun', 'masa_kerja_kumulatif_bulan',
       'masa_kerja_pengurangan_tahun', 'masa_kerja_pengurangan_bulan',
       'judul_ktp', 'judul_drh', 'judul_surat_usulan', 'judul_sk_cpns_pns', 'judul_pengangkatan', 'judul_keputusan_jabatan', 'judul_piagam_penghargaan',

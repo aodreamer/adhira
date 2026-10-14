@@ -71,6 +71,21 @@ suite('executive PostgreSQL aggregates', () => {
     expect(r.provinces.reduce((sum,row)=>sum+row.total,0)).toBe(3);
     expect(r.provinces.some(row=>row.provinsi==='BALI')).toBe(false);
   });
+  test('legacy institution geography merges with structured provinces and follows global filters', async () => {
+    await pool.query(`INSERT INTO data_individu (tgl_upload,instansi,pemda_provinsi,jenis_penghargaan,verifikasi_data_status,verifikasi_berkas_status)
+      VALUES ('2026-01-01','PEMPROV JATIM',NULL,'Uji peta lama','Menunggu','Menunggu'),
+        ('2026-02-01','PEMKAB TRENGGALEK',NULL,'Uji peta lama','Ditolak','Menunggu'),
+        ('2026-03-01','Pemerintah Daerah','JAWA TIMUR','Uji peta lama','Disetujui','Disetujui'),
+        ('2025-01-01','PEMPROV BANTEN',NULL,'Uji peta lama','Menunggu','Menunggu'),
+        ('2026-01-01','BSSN',NULL,'Uji peta lama','Menunggu','Menunggu')`);
+    const r=await loadExecutiveDashboard(pool,{tahun:2026,instansi:null,jenis:'Uji peta lama'});
+    expect(r.summary.total).toBe(4);
+    expect(r.provinces.find(row=>row.provinsi==='JAWA TIMUR')).toMatchObject({total:3,sesuai:1,menunggu:1,perbaikan:1});
+    expect(r.provinces.find(row=>row.provinsi===null)).toMatchObject({total:1});
+    expect(r.provinces.some(row=>row.provinsi==='BANTEN')).toBe(false);
+    const filtered=await loadExecutiveDashboard(pool,{tahun:2026,instansi:'PEMKAB TRENGGALEK',jenis:'Uji peta lama'});
+    expect(filtered.provinces).toEqual([{provinsi:'JAWA TIMUR',total:1,sesuai:0,menunggu:0,perbaikan:1,draft:0,sk_tersedia:0}]);
+  });
   test('waiting age bins include exact boundaries and preserve unknown and future dates',async()=>{
     await pool.query(`INSERT INTO data_individu (tgl_upload,instansi,jenis_penghargaan,verifikasi_data_status,verifikasi_berkas_status)
       SELECT CURRENT_DATE - n,'BSSN','Uji kelompok usia','Menunggu','Menunggu' FROM unnest(ARRAY[0,7,8,14,15,29,30,59,60,-1]) AS n`);
